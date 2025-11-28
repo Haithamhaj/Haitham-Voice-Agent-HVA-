@@ -36,6 +36,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+from haitham_voice_agent.intent_router import route_command
+
 class HVA:
     """Haitham Voice Agent - Main Orchestrator"""
     
@@ -93,12 +95,47 @@ class HVA:
             return
             
         logger.info(f"Command: {text}")
-        
-        # Check for Session Mode triggers
-        if self._is_session_start_trigger(text):
-            await self.start_session_mode()
-            return
+        await self.process_text_command(text)
 
+    async def process_text_command(self, text: str):
+        """
+        Process a text command (Route -> Execute)
+        """
+        # 1. Deterministic Routing (Fast Path)
+        intent = route_command(text)
+        
+        if intent["confidence"] > 0.7:
+            logger.info(f"Deterministic intent matched: {intent['action']}")
+            
+            # Execute directly
+            if intent["action"] == "start_session_recording":
+                await self.start_session_mode()
+                return
+                
+            elif intent["action"] == "stop_session_recording":
+                # Should not happen in command mode usually, but handle it
+                self.speak("لا يوجد جلسة نشطة" if self.language == "ar" else "No active session")
+                return
+                
+            elif intent["action"] == "save_memory_note":
+                content = intent["params"].get("content", text)
+                await self.memory_tools.process_voice_note(content)
+                self.speak("تم الحفظ" if self.language == "ar" else "Saved")
+                return
+                
+            elif intent["action"] == "fetch_latest_email":
+                email = self.gmail.fetch_latest_email()
+                if email:
+                    self.speak(f"إيميل من {email['from']}: {email['subject']}" if self.language == "ar" else f"Email from {email['from']}: {email['subject']}")
+                else:
+                    self.speak("لا يوجد إيميلات جديدة" if self.language == "ar" else "No new emails")
+                return
+                
+            elif intent["action"] == "summarize_latest_email":
+                # Fallback to planner for complex tasks
+                pass 
+
+        # 2. LLM Routing (Fallback / Complex Tasks)
         # Route & Plan
         plan = await self.plan_command(text)
         
@@ -330,9 +367,7 @@ async def main():
     
     if args.test:
         logger.info(f"Test Mode: {args.test}")
-        plan = await hva.plan_command(args.test)
-        result = await hva.execute_plan(plan)
-        logger.info(f"Result: {result}")
+        await hva.process_text_command(args.test)
     else:
         await hva.run()
 

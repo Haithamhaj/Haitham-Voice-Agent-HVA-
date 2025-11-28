@@ -136,16 +136,43 @@ class LocalSTT:
             
             # Transcribe
             # beam_size=1 for speed in realtime mode
+            # Force Arabic if language is 'ar' or None (default preference)
+            target_lang = language or "ar"
+            
             segments, info = model.transcribe(
                 data, 
-                language=language, 
+                language=target_lang, 
                 beam_size=1
             )
 
-            text = " ".join(seg.text for seg in segments).strip()
+            # Collect segments and check confidence
+            collected_segments = list(segments)
+            text = " ".join(seg.text for seg in collected_segments).strip()
             
+            # Calculate average confidence (probability = exp(logprob))
+            avg_prob = 0.0
+            if collected_segments:
+                avg_prob = np.mean([np.exp(seg.avg_logprob) for seg in collected_segments])
+            
+            logger.info(f"Realtime transcription (lang={target_lang}, conf={avg_prob:.2f}): {text}")
+
+            # Fallback logic: If confidence is low (< 0.4) and we forced Arabic, try English
+            # This helps when the user actually spoke English but we forced Arabic
+            if target_lang == "ar" and avg_prob < 0.4:
+                logger.info("Low confidence in Arabic. Attempting English fallback...")
+                segments_en, _ = model.transcribe(
+                    data,
+                    language="en",
+                    beam_size=1
+                )
+                text_en = " ".join(seg.text for seg in segments_en).strip()
+                logger.info(f"English fallback: {text_en}")
+                
+                # If English result is non-empty, use it
+                if text_en:
+                    return text_en
+
             if text:
-                logger.info(f"Realtime transcription ({info.language}): {text}")
                 return text
             return None
             
