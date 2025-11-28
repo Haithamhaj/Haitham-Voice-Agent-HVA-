@@ -83,9 +83,10 @@ def resolve_gemini_mapping() -> Dict[str, str]:
         FALLBACKS["flash"]
     )
     
-    # Discover Pro variant (1.5 or higher, or 3.x+)
+    # Discover Pro variant (2.0 or higher)
+    # Note: 1.5 is deprecated/stopped, so we only look for 2.x+ or 3.x+
     pro_real = get_best_model(
-        r"gemini-(1\.5|[3-9]\.\d+)-pro",
+        r"gemini-[2-9]\.\d+-pro",
         FALLBACKS["pro"]
     )
     
