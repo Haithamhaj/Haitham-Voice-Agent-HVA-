@@ -52,6 +52,31 @@ class Config:
     # Embedding model for Memory module
     EMBEDDING_MODEL: str = "text-embedding-ada-002"
     
+    # ==================== MODEL MAPPING ====================
+    # Logical model names → actual API model strings
+    # This allows us to upgrade models in ONE place without touching routing logic
+    MODEL_MAPPING = {
+        "logical.nano":        "gpt-4o-mini",      # Cheapest, lowest quality
+        "logical.nano-plus":   "gpt-4o-mini",      # Slightly stronger nano
+        "logical.mini":        "gpt-4o",           # Main GPT workhorse
+        "logical.premium":     "gpt-4o",           # Highest quality (same as mini for now)
+        "logical.doc-gemini":  "gemini-1.5-pro",   # Gemini for long documents
+    }
+    
+    @classmethod
+    def resolve_model(cls, logical_name: str) -> str:
+        """
+        Resolve a logical model name to the actual API model string.
+        If the logical name is unknown, fall back to a safe default.
+        
+        Args:
+            logical_name: Logical model name (e.g., "logical.mini")
+            
+        Returns:
+            str: Actual API model string (e.g., "gpt-4o")
+        """
+        return cls.MODEL_MAPPING.get(logical_name, cls.MODEL_MAPPING["logical.mini"])
+    
     # ==================== VOICE SETTINGS ====================
     # Supported languages
     SUPPORTED_LANGUAGES = ["ar", "en"]
