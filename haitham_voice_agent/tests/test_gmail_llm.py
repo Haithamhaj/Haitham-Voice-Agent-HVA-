@@ -46,10 +46,24 @@ TEST_THREAD = [
 ]
 
 
+from unittest.mock import AsyncMock, MagicMock, patch
+from haitham_voice_agent.tools.gmail.llm_helper import get_email_llm_helpers
+
+
 @pytest.fixture
 def llm_helpers():
-    """Get EmailLLMHelpers instance"""
-    return get_email_llm_helpers()
+    """Get EmailLLMHelpers instance with mocked router"""
+    helpers = get_email_llm_helpers()
+    
+    # Mock the router methods
+    helpers.router.generate_with_gemini = AsyncMock()
+    helpers.router.generate_with_gpt = AsyncMock()
+    
+    # Setup default mock returns
+    helpers.router.generate_with_gemini.return_value = "Mocked Gemini Summary"
+    helpers.router.generate_with_gpt.return_value = "Mocked GPT Reply"
+    
+    return helpers
 
 
 # ==================== SUMMARIZATION TESTS ====================
@@ -63,11 +77,15 @@ async def test_summarize_email_wrapper(llm_helpers):
         "body_text": TEST_EMAIL
     }
     
+    # Setup mock
+    llm_helpers.router.generate_with_gemini.return_value = "Mocked Gemini Summary"
+    
     result = await llm_helpers.summarize_email(email_obj)
     
     assert not result.get("error")
     assert "summary" in result
     assert result["model"] == "gemini"
+    assert result["summary"] == "Mocked Gemini Summary"
     
     print(f"\n✓ Wrapper Summary: {result['summary'][:100]}...")
 
@@ -75,13 +93,14 @@ async def test_summarize_email_wrapper(llm_helpers):
 @pytest.mark.asyncio
 async def test_summarize_email_basic(llm_helpers):
     """Test basic email summarization"""
+    llm_helpers.router.generate_with_gemini.return_value = "Mocked Gemini Summary"
+    
     result = await llm_helpers.summarize_email_content(TEST_EMAIL)
     
-    assert not result.get("error"), f"Summarization failed: {result.get('message')}"
+    assert not result.get("error")
     assert "summary" in result
     assert result["model"] == "gemini"
-    assert len(result["summary"]) > 0
-    assert len(result["summary"]) < len(TEST_EMAIL)  # Summary should be shorter
+    assert result["summary"] == "Mocked Gemini Summary"
     
     print(f"\n✓ Basic Summary: {result['summary'][:100]}...")
 
@@ -89,16 +108,15 @@ async def test_summarize_email_basic(llm_helpers):
 @pytest.mark.asyncio
 async def test_summarize_email_detailed(llm_helpers):
     """Test detailed email summarization"""
+    llm_helpers.router.generate_with_gemini.return_value = "Detailed Mocked Summary"
+    
     result = await llm_helpers.summarize_email_content(TEST_EMAIL, detailed=True)
     
     assert not result.get("error")
     assert "summary" in result
     assert result["model"] == "gemini"
     assert result["detailed"] is True
-    
-    # Detailed summary should be longer
-    basic_result = await llm_helpers.summarize_email_content(TEST_EMAIL, detailed=False)
-    assert len(result["summary"]) >= len(basic_result["summary"])
+    assert result["summary"] == "Detailed Mocked Summary"
     
     print(f"\n✓ Detailed Summary generated")
 
@@ -106,6 +124,8 @@ async def test_summarize_email_detailed(llm_helpers):
 @pytest.mark.asyncio
 async def test_summarize_thread(llm_helpers):
     """Test thread summarization"""
+    llm_helpers.router.generate_with_gemini.return_value = "Thread Summary"
+    
     result = await llm_helpers.summarize_thread(TEST_THREAD)
     
     assert not result.get("error")
@@ -121,6 +141,8 @@ async def test_summarize_thread(llm_helpers):
 @pytest.mark.asyncio
 async def test_extract_actions(llm_helpers):
     """Test action item extraction"""
+    llm_helpers.router.generate_with_gemini.return_value = "1. Sarah: Design\n2. Mike: API"
+    
     result = await llm_helpers.extract_email_actions(TEST_EMAIL)
     
     assert not result.get("error")
@@ -128,25 +150,23 @@ async def test_extract_actions(llm_helpers):
     assert result["model"] == "gemini"
     assert result["has_actions"] is True
     
-    # Check that key action items are mentioned
-    actions_text = result["actions"].lower()
-    assert "sarah" in actions_text or "design" in actions_text
-    assert "mike" in actions_text or "api" in actions_text
-    
     print(f"\n✓ Actions extracted: {result['has_actions']}")
 
 
 @pytest.mark.asyncio
 async def test_extract_actions_none(llm_helpers):
     """Test action extraction with no actions"""
+    llm_helpers.router.generate_with_gemini.return_value = "No action items found."
+    
     no_action_email = "Hi, just wanted to say thanks for the update. Have a great day!"
     
     result = await llm_helpers.extract_email_actions(no_action_email)
     
     assert not result.get("error")
     assert "actions" in result
-    # Should detect no actions
-    assert result["has_actions"] is False or "no action" in result["actions"].lower()
+    # Should detect no actions based on text analysis or LLM return
+    # Our implementation checks for "no action" string
+    assert result["has_actions"] is False
     
     print(f"\n✓ No actions detected correctly")
 
@@ -154,6 +174,8 @@ async def test_extract_actions_none(llm_helpers):
 @pytest.mark.asyncio
 async def test_extract_thread_actions(llm_helpers):
     """Test action extraction from thread"""
+    llm_helpers.router.generate_with_gemini.return_value = "Action items from thread"
+    
     result = await llm_helpers.extract_thread_actions(TEST_THREAD)
     
     assert not result.get("error")
@@ -169,12 +191,14 @@ async def test_extract_thread_actions(llm_helpers):
 @pytest.mark.asyncio
 async def test_generate_smart_reply_wrapper(llm_helpers):
     """Test unified generate_smart_reply wrapper"""
+    llm_helpers.router.generate_with_gpt.return_value = "Yes, let's meet."
+    
     result = await llm_helpers.generate_smart_reply(TEST_EMAIL)
     
     assert not result.get("error")
     assert "reply" in result
     assert result["model"] == "gpt"
-    assert len(result["reply"]) > 0
+    assert result["reply"] == "Yes, let's meet."
     
     print(f"\n✓ Wrapper Smart Reply generated")
 
@@ -182,6 +206,8 @@ async def test_generate_smart_reply_wrapper(llm_helpers):
 @pytest.mark.asyncio
 async def test_generate_reply_professional(llm_helpers):
     """Test professional reply generation"""
+    llm_helpers.router.generate_with_gpt.return_value = "Professional reply."
+    
     result = await llm_helpers.generate_reply_suggestion(
         from_email="john@example.com",
         subject="Project Timeline",
@@ -195,10 +221,7 @@ async def test_generate_reply_professional(llm_helpers):
     assert result["model"] == "gpt"
     assert result["style"] == "professional"
     assert result["tone"] == "neutral"
-    assert len(result["reply"]) > 0
-    
-    # Reply should not contain hallucinated links or tools
-    assert "http://" not in result["reply"] or "example.com" in result["reply"]
+    assert result["reply"] == "Professional reply."
     
     print(f"\n✓ Professional reply generated")
 
@@ -207,6 +230,7 @@ async def test_generate_reply_professional(llm_helpers):
 async def test_generate_reply_styles(llm_helpers):
     """Test different reply styles"""
     styles = ["professional", "casual", "brief"]
+    llm_helpers.router.generate_with_gpt.return_value = "Styled reply."
     
     for style in styles:
         result = await llm_helpers.generate_reply_suggestion(
@@ -227,6 +251,7 @@ async def test_generate_reply_styles(llm_helpers):
 async def test_generate_reply_types(llm_helpers):
     """Test different reply types"""
     reply_types = ["accept", "decline", "acknowledge"]
+    llm_helpers.router.generate_with_gpt.return_value = "Typed reply."
     
     for reply_type in reply_types:
         result = await llm_helpers.generate_reply_suggestion(
@@ -248,6 +273,7 @@ async def test_generate_reply_types(llm_helpers):
 async def test_translate_to_arabic(llm_helpers):
     """Test translation to Arabic"""
     english_text = "Hello, how are you? I hope you are doing well."
+    llm_helpers.router.generate_with_gemini.return_value = "مرحبا، كيف حالك؟"
     
     result = await llm_helpers.translate_email_content(english_text, "ar")
     
@@ -256,9 +282,7 @@ async def test_translate_to_arabic(llm_helpers):
     assert result["model"] == "gemini"
     assert result["target_language"] == "ar"
     assert result["language_name"] == "Arabic"
-    
-    # Translated text should be different from original
-    assert result["translated_text"] != english_text
+    assert result["translated_text"] == "مرحبا، كيف حالك؟"
     
     print(f"\n✓ Translated to Arabic")
 
@@ -267,6 +291,7 @@ async def test_translate_to_arabic(llm_helpers):
 async def test_translate_to_spanish(llm_helpers):
     """Test translation to Spanish"""
     english_text = "Thank you for your email. I will review it soon."
+    llm_helpers.router.generate_with_gemini.return_value = "Gracias por su correo."
     
     result = await llm_helpers.translate_email_content(english_text, "es")
     
@@ -282,12 +307,14 @@ async def test_translate_to_spanish(llm_helpers):
 @pytest.mark.asyncio
 async def test_analyze_sentiment(llm_helpers):
     """Test sentiment analysis"""
+    llm_helpers.router.generate_with_gemini.return_value = "Positive sentiment."
+    
     result = await llm_helpers.analyze_email_sentiment(TEST_EMAIL)
     
     assert not result.get("error")
     assert "analysis" in result
     assert result["model"] == "gemini"
-    assert len(result["analysis"]) > 0
+    assert result["analysis"] == "Positive sentiment."
     
     print(f"\n✓ Sentiment analyzed")
 
@@ -296,13 +323,14 @@ async def test_analyze_sentiment(llm_helpers):
 async def test_analyze_sentiment_positive(llm_helpers):
     """Test sentiment analysis on positive email"""
     positive_email = "Thank you so much! This is exactly what we needed. Great work!"
+    llm_helpers.router.generate_with_gemini.return_value = "Very Positive"
     
     result = await llm_helpers.analyze_email_sentiment(positive_email)
     
     assert not result.get("error")
     # Should detect positive sentiment
     analysis_lower = result["analysis"].lower()
-    assert "positive" in analysis_lower or "enthusiastic" in analysis_lower
+    assert "positive" in analysis_lower
     
     print(f"\n✓ Positive sentiment detected")
 
@@ -311,13 +339,14 @@ async def test_analyze_sentiment_positive(llm_helpers):
 async def test_analyze_sentiment_urgent(llm_helpers):
     """Test sentiment analysis on urgent email"""
     urgent_email = "URGENT: We need this completed by end of day today!"
+    llm_helpers.router.generate_with_gemini.return_value = "Urgent priority"
     
     result = await llm_helpers.analyze_email_sentiment(urgent_email)
     
     assert not result.get("error")
     # Should detect urgency
     analysis_lower = result["analysis"].lower()
-    assert "urgent" in analysis_lower or "high" in analysis_lower
+    assert "urgent" in analysis_lower
     
     print(f"\n✓ Urgency detected")
 
@@ -339,13 +368,13 @@ async def test_empty_email_handling(llm_helpers):
 async def test_very_long_email(llm_helpers):
     """Test handling of very long email"""
     long_email = "This is a test email. " * 1000  # Very long email
+    llm_helpers.router.generate_with_gemini.return_value = "Summary of long email"
     
     result = await llm_helpers.summarize_email_content(long_email)
     
     assert not result.get("error")
     assert "summary" in result
-    # Summary should be much shorter than original
-    assert len(result["summary"]) < len(long_email) / 10
+    assert result["summary"] == "Summary of long email"
     
     print(f"\n✓ Long email summarized")
 
