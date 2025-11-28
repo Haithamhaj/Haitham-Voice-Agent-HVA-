@@ -111,7 +111,7 @@ class LLMRouter:
         """
         # Resolve model at runtime
         model_name = Config.resolve_gemini_model(logical_model)
-        logger.info(f"Generating with Gemini ({logical_model} -> {model_name})...")
+        logger.info(f"[LLMRouter] Gemini: {logical_model} -> {model_name}")
         
         try:
             # Create client for the specific model

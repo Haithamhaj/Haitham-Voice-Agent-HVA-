@@ -32,11 +32,20 @@ class Summarizer:
             # The SRS says "Gemini (Analytical Tasks): Summarization".
             # I'll use Gemini but ensure I can parse the JSON.
             
-            response = await self.router.generate_with_gemini(
-                prompt=prompt,
-                temperature=0.3,
-                logical_model="logical.gemini.pro"
-            )
+            try:
+                response = await self.router.generate_with_gemini(
+                    prompt=prompt,
+                    temperature=0.3,
+                    logical_model="logical.gemini.pro"
+                )
+            except Exception as e:
+                logger.warning(f"Gemini summarization failed: {e}. Falling back to GPT.")
+                # Fallback to GPT
+                response = await self.router.generate_with_gpt(
+                    prompt=prompt,
+                    temperature=0.3,
+                    response_format="json_object"
+                )
             
             # Parse JSON
             if isinstance(response, str):
@@ -45,7 +54,7 @@ class Summarizer:
                     return json.loads(clean_response)
                 except json.JSONDecodeError:
                     # Fallback or retry? For now, simple fallback
-                    logger.warning("Failed to parse Gemini JSON, falling back to simple summary")
+                    logger.warning("Failed to parse JSON (Gemini/GPT), falling back to simple summary")
                     return {
                         "ultra_brief": content[:50] + "...",
                         "executive_summary": ["Summary generation failed"],

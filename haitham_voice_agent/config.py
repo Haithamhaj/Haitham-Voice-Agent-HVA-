@@ -290,7 +290,8 @@ Version: {cls.HVA_VERSION}
 HVA Home: {cls.HVA_HOME}
 
 LLM Models:
-  - Gemini: {cls.GEMINI_MODEL}
+  - Gemini Flash: {cls.resolve_gemini_model("logical.gemini.flash")}
+  - Gemini Pro:   {cls.resolve_gemini_model("logical.gemini.pro")}
   - GPT: {cls.GPT_MODEL}
   - Embeddings: {cls.EMBEDDING_MODEL}
 
