@@ -1,3 +1,1 @@
-"""Memory module initialization"""
-
-__all__ = []
+from .memory_system import MemorySystem
