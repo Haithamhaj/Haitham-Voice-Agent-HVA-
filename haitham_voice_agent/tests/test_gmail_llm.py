@@ -4,7 +4,7 @@ Tests for Email LLM Helpers
 
 import pytest
 import asyncio
-from haitham_voice_agent.tools.gmail.email_llm import get_email_llm_helpers
+from haitham_voice_agent.tools.gmail.llm_helper import get_email_llm_helpers
 
 
 # Test data
@@ -53,6 +53,24 @@ def llm_helpers():
 
 
 # ==================== SUMMARIZATION TESTS ====================
+
+@pytest.mark.asyncio
+async def test_summarize_email_wrapper(llm_helpers):
+    """Test unified summarize_email wrapper"""
+    email_obj = {
+        "subject": "Project Timeline",
+        "from": "john@example.com",
+        "body_text": TEST_EMAIL
+    }
+    
+    result = await llm_helpers.summarize_email(email_obj)
+    
+    assert not result.get("error")
+    assert "summary" in result
+    assert result["model"] == "gemini"
+    
+    print(f"\n✓ Wrapper Summary: {result['summary'][:100]}...")
+
 
 @pytest.mark.asyncio
 async def test_summarize_email_basic(llm_helpers):
@@ -147,6 +165,19 @@ async def test_extract_thread_actions(llm_helpers):
 
 
 # ==================== SMART REPLY TESTS ====================
+
+@pytest.mark.asyncio
+async def test_generate_smart_reply_wrapper(llm_helpers):
+    """Test unified generate_smart_reply wrapper"""
+    result = await llm_helpers.generate_smart_reply(TEST_EMAIL)
+    
+    assert not result.get("error")
+    assert "reply" in result
+    assert result["model"] == "gpt"
+    assert len(result["reply"]) > 0
+    
+    print(f"\n✓ Wrapper Smart Reply generated")
+
 
 @pytest.mark.asyncio
 async def test_generate_reply_professional(llm_helpers):

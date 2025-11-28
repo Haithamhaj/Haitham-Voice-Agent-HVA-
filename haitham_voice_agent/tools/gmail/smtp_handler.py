@@ -11,8 +11,8 @@ from email.mime.multipart import MIMEMultipart
 import logging
 from typing import List, Dict, Any, Optional
 
-from ..auth.credentials_store import get_credential_store
-from ...config import Config
+from .auth.credentials_store import get_credential_store
+from haitham_voice_agent.config import Config
 
 logger = logging.getLogger(__name__)
 

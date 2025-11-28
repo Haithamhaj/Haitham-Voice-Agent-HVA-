@@ -14,7 +14,7 @@ from typing import Dict, Any, List, Optional
 import json
 
 from ...llm_router import get_router
-from . import email_prompts as prompts
+from . import prompts
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +24,9 @@ class EmailLLMHelpers:
     LLM-enhanced email operations
     
     Public Functions:
-    - summarize_email_content: Summarize email (Gemini)
+    - summarize_email: Summarize email object (Gemini)
+    - generate_smart_reply: Generate smart reply from text (GPT)
     - extract_email_actions: Extract action items (Gemini)
-    - generate_reply_suggestion: Generate smart reply (GPT)
     - translate_email_content: Translate email (Gemini)
     - analyze_email_sentiment: Analyze sentiment (Gemini)
     """
@@ -37,6 +37,29 @@ class EmailLLMHelpers:
     
     # ==================== SUMMARIZATION (Gemini) ====================
     
+    async def summarize_email(self, email_obj: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Summarize email object using Gemini (Unified function)
+        
+        Args:
+            email_obj: Email dictionary (from GmailAPIHandler or IMAPHandler)
+            
+        Returns:
+            dict: Summary result
+        """
+        # Extract content
+        subject = email_obj.get('subject', '')
+        sender = email_obj.get('from', '')
+        body = email_obj.get('body_text', '') or email_obj.get('snippet', '')
+        
+        # Combine for context
+        full_text = f"From: {sender}\nSubject: {subject}\n\n{body}"
+        
+        # Determine if detailed summary is needed (e.g. if long)
+        detailed = len(body) > 1000
+        
+        return await self.summarize_email_content(full_text, detailed=detailed)
+
     async def summarize_email_content(
         self,
         email_text: str,
@@ -229,6 +252,25 @@ class EmailLLMHelpers:
     
     # ==================== SMART REPLY (GPT) ====================
     
+    async def generate_smart_reply(self, email_text: str) -> Dict[str, Any]:
+        """
+        Generate smart reply from email text (Unified function)
+        
+        Args:
+            email_text: Email body text (can include headers)
+            
+        Returns:
+            dict: Reply suggestion
+        """
+        # Simple parsing to try to extract context if possible, otherwise use whole text
+        return await self.generate_reply_suggestion(
+            from_email="Unknown",
+            subject="Reply",
+            body=email_text,
+            style="professional",
+            tone="neutral"
+        )
+
     async def generate_reply_suggestion(
         self,
         from_email: str,
@@ -410,7 +452,7 @@ if __name__ == "__main__":
         print("Testing EmailLLMHelpers...")
         
         # Test email text
-        test_email = """
+        test_email_text = """
         Hi Team,
         
         I wanted to follow up on the project timeline we discussed last week.
@@ -425,37 +467,36 @@ if __name__ == "__main__":
         John
         """
         
-        # Test summarization
-        print("\n1. Testing summarization (Gemini)...")
-        result = await helpers.summarize_email_content(test_email)
+        test_email_obj = {
+            "subject": "Project Timeline",
+            "from": "john@example.com",
+            "body_text": test_email_text
+        }
+        
+        # Test summarization (Unified)
+        print("\n1. Testing summarize_email (Gemini)...")
+        result = await helpers.summarize_email(test_email_obj)
         if not result.get("error"):
             print(f"✓ Summary: {result['summary'][:100]}...")
             print(f"  Model: {result['model']}")
         
         # Test action extraction
         print("\n2. Testing action extraction (Gemini)...")
-        result = await helpers.extract_email_actions(test_email)
+        result = await helpers.extract_email_actions(test_email_text)
         if not result.get("error"):
             print(f"✓ Actions found: {result['has_actions']}")
             print(f"  Model: {result['model']}")
         
-        # Test reply generation
-        print("\n3. Testing reply generation (GPT)...")
-        result = await helpers.generate_reply_suggestion(
-            from_email="john@example.com",
-            subject="Project Timeline",
-            body=test_email,
-            style="professional",
-            tone="positive"
-        )
+        # Test smart reply (Unified)
+        print("\n3. Testing generate_smart_reply (GPT)...")
+        result = await helpers.generate_smart_reply(test_email_text)
         if not result.get("error"):
             print(f"✓ Reply generated")
             print(f"  Model: {result['model']}")
-            print(f"  Style: {result['style']}")
         
         # Test translation
         print("\n4. Testing translation (Gemini)...")
-        result = await helpers.translate_email_content(test_email, "ar")
+        result = await helpers.translate_email_content(test_email_text, "ar")
         if not result.get("error"):
             print(f"✓ Translated to: {result['language_name']}")
             print(f"  Model: {result['model']}")

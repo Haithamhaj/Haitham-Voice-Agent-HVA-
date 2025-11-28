@@ -8,7 +8,7 @@ From Gmail Module SRS Section 3.2.
 import re
 import html
 import logging
-from typing import List, Tuple
+from typing import List, Dict, Any, Optional, Tuple
 from email.utils import parseaddr, parsedate_to_datetime
 from bs4 import BeautifulSoup
 

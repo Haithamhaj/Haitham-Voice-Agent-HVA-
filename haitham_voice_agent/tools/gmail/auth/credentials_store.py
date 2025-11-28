@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 from cryptography.fernet import Fernet
 import keyring
 
-from ...config import Config
+from haitham_voice_agent.config import Config
 
 logger = logging.getLogger(__name__)
 

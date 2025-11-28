@@ -13,14 +13,14 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import time
 
-from ..models.email_message import EmailMessage, Attachment
-from ..auth.credentials_store import get_credential_store
-from ..utils.text_processing import (
+from .models.email_message import EmailMessage, Attachment
+from .auth.credentials_store import get_credential_store
+from .utils.text_processing import (
     extract_plain_text_from_html,
     parse_email_list,
     extract_snippet
 )
-from ...config import Config
+from haitham_voice_agent.config import Config
 
 logger = logging.getLogger(__name__)
 

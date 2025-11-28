@@ -15,9 +15,9 @@ import time
 
 from googleapiclient.errors import HttpError
 
-from ..models.email_message import EmailMessage, Draft, Label, Attachment
-from ..auth.oauth_flow import get_oauth_flow
-from ..utils.text_processing import (
+from .models.email_message import EmailMessage, Draft, Label, Attachment
+from .auth.oauth_flow import get_oauth_flow
+from .utils.text_processing import (
     extract_plain_text_from_html,
     parse_email_address,
     parse_email_list,

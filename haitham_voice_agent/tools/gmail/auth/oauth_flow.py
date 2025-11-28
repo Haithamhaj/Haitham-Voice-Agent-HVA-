@@ -16,7 +16,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from ...config import Config
+from haitham_voice_agent.config import Config
 from .credentials_store import get_credential_store
 
 logger = logging.getLogger(__name__)
