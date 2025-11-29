@@ -210,6 +210,17 @@ class HVA:
         # Route & Plan
         plan = await self.plan_command(text)
         
+        # Fallback: If LLM failed to identify intent but it looks like a note
+        if (plan.get("intent") in ["Unknown", "unknown_action", None] or plan.get("action") == "unknown") and self._looks_like_note(text):
+             logger.info("Fallback intent: treating unknown text as save_memory_note")
+             plan = {
+                 "intent": "Save Note (Fallback)",
+                 "tool": "memory",
+                 "action": "save_note",
+                 "parameters": {"content": text},
+                 "confirmation_needed": False
+             }
+        
         # Confirm
         if plan.get("confirmation_needed", True):
             if not self.confirm_plan(plan):
@@ -230,6 +241,28 @@ class HVA:
         text_lower = text.lower()
         triggers = triggers_ar if self.language == "ar" else triggers_en
         return any(t in text_lower for t in triggers)
+
+    def _looks_like_note(self, text: str) -> bool:
+        """Check if text looks like a note (fallback heuristic)"""
+        if not text:
+            return False
+
+        # Long-enough natural speech (either AR or EN)
+        if len(text) < 20:
+            return False
+
+        # If it contains time or date words, treat as note if nothing else matched
+        note_markers = ["ملاحظة", "meeting", "اجتماع", "موعد", "idea", "فكرة", "بخصوص"]
+        if any(marker in text for marker in note_markers):
+            return True
+
+        # Fallback: if it's long Arabic text and not clearly a question/command, treat as note
+        import re
+        has_arabic = re.search(r"[\u0600-\u06FF]", text) is not None
+        if has_arabic and text.count("؟") == 0:
+            return True
+
+        return False
 
     async def start_session_mode(self):
         """

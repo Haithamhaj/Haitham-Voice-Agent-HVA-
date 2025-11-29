@@ -73,6 +73,15 @@ class IntentRouter:
         """
         text_lower = text.lower().strip()
         
+        # 0. Check deterministic Arabic save note
+        if detect_arabic_save_note(text):
+            logger.info("Deterministic Arabic intent: save_memory_note")
+            return {
+                "action": "save_memory_note",
+                "params": {"content": text},
+                "confidence": 0.95
+            }
+        
         # 1. Check explicit patterns
         for action, patterns in self.patterns.items():
             for pattern in patterns:
@@ -101,6 +110,31 @@ class IntentRouter:
             "params": {},
             "confidence": 0.0
         }
+
+AR_SAVE_KEYWORDS = [
+    "سجل", "سجّل", "سجلو", "سجلي",
+    "احفظ", "إحفظ", "خزن", "دوّن", "اكتب ملاحظة", "اكتب لي ملاحظة",
+]
+
+def _contains_any(text: str, keywords: list[str]) -> bool:
+    if not text:
+        return False
+    return any(kw in text for kw in keywords)
+
+def detect_arabic_save_note(text: str) -> bool:
+    # Basic heuristic: Arabic letters + one of the "save" verbs + "ملاحظة" أو "note"
+    if not text:
+        return False
+
+    # check for Arabic letters
+    has_arabic = re.search(r"[\u0600-\u06FF]", text) is not None
+    if not has_arabic:
+        return False
+
+    if _contains_any(text, AR_SAVE_KEYWORDS) or "ملاحظة" in text:
+        return True
+
+    return False
 
 # Singleton instance
 _router = IntentRouter()
