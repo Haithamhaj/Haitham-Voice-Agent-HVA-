@@ -41,6 +41,7 @@ from haitham_voice_agent.tools.stt_router import transcribe_command, transcribe_
 from haitham_voice_agent.intent_router import route_command
 from haitham_voice_agent.tools.arabic_normalizer import normalize_arabic_text
 from haitham_voice_agent.tools.tasks.task_manager import task_manager
+from haitham_voice_agent.tools.files import FileTools
 
 def validate_config() -> bool:
     """Validates the application configuration."""
@@ -116,6 +117,7 @@ class HVA:
         # Initialize tools
         self.memory_tools = VoiceMemoryTools()
         self.gmail = ConnectionManager()
+        self.file_tools = FileTools()
         
         # State
         self.language = "ar"  # Default language
@@ -313,6 +315,48 @@ class HVA:
 
         return False
 
+    def _resolve_path(self, path_name: str) -> str:
+        """Resolve spoken path name to actual path"""
+        if not path_name:
+            return "~"
+            
+        name = path_name.lower().strip()
+        
+        # Common mappings
+        mappings = {
+            "development": "~/development",
+            "ديفولوبمنت": "~/development",
+            "تطوير": "~/development",
+            "downloads": "~/Downloads",
+            "تنزيلات": "~/Downloads",
+            "documents": "~/Documents",
+            "مستندات": "~/Documents",
+            "desktop": "~/Desktop",
+            "سطح المكتب": "~/Desktop",
+            "home": "~",
+            "الرئيسية": "~",
+            "root": "/",
+            "projects": "~/HVA_Workspace/projects",
+            "مشاريع": "~/HVA_Workspace/projects"
+        }
+        
+        # Check exact match
+        if name in mappings:
+            return mappings[name]
+            
+        # Check partial match (e.g. "file development")
+        for key, val in mappings.items():
+            if key in name:
+                return val
+                
+        # Default to home if unknown, or try to use as is relative to home
+        # If it looks like a path, use it
+        if "/" in name:
+            return name
+            
+        # Fallback: assume it's a folder in home
+        return f"~/{path_name}"
+
     async def start_session_mode(self):
         """
         Session Mode: Record -> Transcribe -> Analyze
@@ -450,14 +494,16 @@ User said: "{text}"
 Generate execution plan JSON:
 {{
     "intent": "description",
-    "tool": "memory|gmail|tasks|other",
-    "action": "save_note|search|fetch_email|send_email|create_task|list_tasks|complete_task",
+    "tool": "memory|gmail|tasks|files|other",
+    "action": "save_note|search|fetch_email|send_email|create_task|list_tasks|complete_task|list_files|search_files",
     "parameters": {{
         "title": "task title",
         "project_id": "project slug (optional)",
         "due_date": "ISO date (optional)",
         "query": "search query",
-        "content": "note content"
+        "content": "note content",
+        "directory": "directory path or name",
+        "pattern": "file pattern (optional)"
     }},
     "confirmation_needed": boolean
 }}
@@ -534,6 +580,44 @@ Generate execution plan JSON:
                             task_manager.complete_task(t.id, t.project_id or "inbox")
                             return {"success": True, "message": f"Completed task: {t.title}"}
                 return {"success": False, "message": "Task not found"}
+
+        elif tool == "files":
+            directory = self._resolve_path(params.get("directory", "~"))
+            
+            if action == "list_files":
+                res = await self.file_tools.list_files(directory)
+                if res.get("error"):
+                    return {"success": False, "message": res["message"]}
+                
+                files = res["files"]
+                if not files:
+                    return {"success": True, "message": "No files found" if self.language == "en" else "لا يوجد ملفات"}
+                
+                # Format output
+                count = res["count"]
+                msg = f"Found {count} files in {directory}. " if self.language == "en" else f"وجدت {count} ملفات في {directory}. "
+                # List first 5 names
+                names = [f["name"] for f in files[:5]]
+                msg += ", ".join(names)
+                if count > 5:
+                    msg += "..."
+                return {"success": True, "message": msg}
+                
+            elif action == "search_files":
+                pattern = params.get("pattern") or params.get("query") or "*"
+                res = await self.file_tools.search_files(directory, pattern)
+                if res.get("error"):
+                    return {"success": False, "message": res["message"]}
+                
+                matches = res["matches"]
+                if not matches:
+                    return {"success": True, "message": "No matches found" if self.language == "en" else "لم أجد أي ملفات"}
+                
+                count = res["count"]
+                msg = f"Found {count} matches. " if self.language == "en" else f"وجدت {count} ملفات. "
+                names = [f["name"] for f in matches[:5]]
+                msg += ", ".join(names)
+                return {"success": True, "message": msg}
 
         return {"success": False, "message": "Unknown action"}
 

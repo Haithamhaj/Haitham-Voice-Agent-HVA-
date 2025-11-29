@@ -85,6 +85,20 @@ class IntentRouter:
                 r"complete task",
                 r"finish task",
                 r"mark task as done"
+            ],
+            "list_files": [
+                r"اعرض الملفات",
+                r"شو في ملفات",
+                r"قائمة الملفات",
+                r"list files",
+                r"show files",
+                r"what files are in"
+            ],
+            "search_files": [
+                r"ابحث عن ملف",
+                r"دور على ملف",
+                r"search for file",
+                r"find file"
             ]
         }
 
