@@ -99,6 +99,26 @@ class IntentRouter:
                 r"دور على ملف",
                 r"search for file",
                 r"find file"
+            ],
+            "open_app": [
+                r"افتح تطبيق",
+                r"شغل تطبيق",
+                r"open app",
+                r"launch app",
+                r"افتح",  # General open might conflict, but usually followed by app name
+                r"شغل"
+            ],
+            "system_control": [
+                r"ارفع الصوت",
+                r"وطي الصوت",
+                r"اكتم الصوت",
+                r"شغل الصوت",
+                r"اطفئ الشاشة",
+                r"turn up volume",
+                r"turn down volume",
+                r"mute",
+                r"unmute",
+                r"sleep display"
             ]
         }
 

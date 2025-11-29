@@ -42,6 +42,7 @@ from haitham_voice_agent.intent_router import route_command
 from haitham_voice_agent.tools.arabic_normalizer import normalize_arabic_text
 from haitham_voice_agent.tools.tasks.task_manager import task_manager
 from haitham_voice_agent.tools.files import FileTools
+from haitham_voice_agent.tools.system_tools import SystemTools
 
 def validate_config() -> bool:
     """Validates the application configuration."""
@@ -118,6 +119,7 @@ class HVA:
         self.memory_tools = VoiceMemoryTools()
         self.gmail = ConnectionManager()
         self.file_tools = FileTools()
+        self.system_tools = SystemTools()
         
         # State
         self.language = "ar"  # Default language
@@ -494,8 +496,8 @@ User said: "{text}"
 Generate execution plan JSON:
 {{
     "intent": "description",
-    "tool": "memory|gmail|tasks|files|other",
-    "action": "save_note|search|fetch_email|send_email|create_task|list_tasks|complete_task|list_files|search_files",
+    "tool": "memory|gmail|tasks|files|system|other",
+    "action": "save_note|search|fetch_email|send_email|create_task|list_tasks|complete_task|list_files|search_files|open_app|set_volume|mute|unmute|sleep_display",
     "parameters": {{
         "title": "task title",
         "project_id": "project slug (optional)",
@@ -503,7 +505,9 @@ Generate execution plan JSON:
         "query": "search query",
         "content": "note content",
         "directory": "directory path or name",
-        "pattern": "file pattern (optional)"
+        "pattern": "file pattern (optional)",
+        "app_name": "application name",
+        "level": "volume level (0-100)"
     }},
     "confirmation_needed": boolean
 }}
@@ -618,6 +622,40 @@ Generate execution plan JSON:
                 names = [f["name"] for f in matches[:5]]
                 msg += ", ".join(names)
                 return {"success": True, "message": msg}
+
+        elif tool == "system":
+            if action == "open_app":
+                app = params.get("app_name") or plan.get("intent")
+                # Clean up intent if it contains "open"
+                app = app.replace("open ", "").replace("افتح ", "").replace("شغل ", "")
+                return await self.system_tools.open_app(app)
+            
+            elif action == "set_volume":
+                level = params.get("level")
+                if level is None:
+                    # Try to parse from intent
+                    import re
+                    nums = re.findall(r'\d+', plan.get("intent", ""))
+                    if nums:
+                        level = int(nums[0])
+                    else:
+                        # Default increments?
+                        if "up" in plan.get("intent", "") or "ارفع" in plan.get("intent", ""):
+                            return await self.system_tools.set_volume(50) # TODO: get current and +10
+                        elif "down" in plan.get("intent", "") or "وطي" in plan.get("intent", ""):
+                            return await self.system_tools.set_volume(20)
+                        else:
+                            level = 50
+                return await self.system_tools.set_volume(int(level))
+            
+            elif action == "mute":
+                return await self.system_tools.mute_volume()
+            
+            elif action == "unmute":
+                return await self.system_tools.unmute_volume()
+                
+            elif action == "sleep_display":
+                return await self.system_tools.sleep_display()
 
         return {"success": False, "message": "Unknown action"}
 
