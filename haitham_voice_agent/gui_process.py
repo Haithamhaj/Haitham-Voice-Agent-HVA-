@@ -74,24 +74,39 @@ class HVAWindow:
         
         # Sidebar Menu Buttons
         def create_menu_btn(text, icon="•", command=None):
-            btn = tk.Button(
-                sidebar, 
+            # Use Label instead of Button for consistent coloring on macOS
+            btn_frame = tk.Frame(sidebar, bg=COLORS['header_bg'])
+            btn_frame.pack(fill=tk.X, pady=2)
+            
+            lbl = tk.Label(
+                btn_frame, 
                 text=f"{icon}  {text}", 
-                font=('Helvetica', 11),
+                font=('Helvetica', 12),
                 bg=COLORS['header_bg'], 
                 fg=COLORS['text_fg'],
-                activebackground=COLORS['card_bg'],
-                activeforeground=COLORS['accent'],
-                relief=tk.FLAT, 
-                bd=0, 
                 anchor="w",
                 padx=20,
                 pady=10,
-                cursor="hand2",
-                command=command
+                cursor="hand2"
             )
-            btn.pack(fill=tk.X, pady=2)
-            return btn
+            lbl.pack(fill=tk.X)
+            
+            def on_enter(e):
+                lbl.configure(bg=COLORS['card_bg'], fg=COLORS['accent'])
+                btn_frame.configure(bg=COLORS['card_bg'])
+                
+            def on_leave(e):
+                lbl.configure(bg=COLORS['header_bg'], fg=COLORS['text_fg'])
+                btn_frame.configure(bg=COLORS['header_bg'])
+                
+            def on_click(e):
+                if command: command()
+                
+            lbl.bind("<Enter>", on_enter)
+            lbl.bind("<Leave>", on_leave)
+            lbl.bind("<Button-1>", on_click)
+            
+            return lbl
             
         create_menu_btn("Dashboard", "📊", lambda: self.show_view("dashboard"))
         create_menu_btn("Files", "📁", lambda: self.show_view("files"))
@@ -162,9 +177,11 @@ class HVAWindow:
         self.input_field = tk.Entry(
             input_frame,
             bg=COLORS['card_bg'],
-            fg=COLORS['text_fg'],
-            insertbackground=COLORS['text_fg'],
-            font=('Helvetica', 12),
+            fg='#ffffff', # Force white
+            insertbackground='#ffffff', # Force white cursor
+            selectbackground=COLORS['accent'],
+            selectforeground=COLORS['bg'],
+            font=('Helvetica', 14), # Larger font
             relief=tk.FLAT,
             bd=0
         )
