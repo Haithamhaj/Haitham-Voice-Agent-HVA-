@@ -481,11 +481,53 @@ Output format: JSON
             
         elif classification.get("type") == "execute_command":
             logger.info(f"Ollama identified command: {classification['intent']}")
+            
+            intent = classification["intent"]
+            params = classification.get("parameters", {})
+            
+            # Default mapping
+            tool = "system"
+            action = intent
+            
+            # Map intents to specific tools
+            if intent in ["show_files", "list_files"]:
+                tool = "files"
+                action = "list_files"
+                # Map 'path' param to 'directory' if needed
+                if "path" in params:
+                    params["directory"] = params.pop("path")
+                    
+            elif intent in ["open_folder"]:
+                # If user wants to OPEN in Finder, use system.open_app or files.open_folder?
+                # Usually "open folder" means open in UI.
+                # Let's check if files tool has open_folder (it usually creates).
+                # Actually, system.open_app can open folders on macOS via 'open' command.
+                tool = "system" 
+                action = "open_app"
+                if "path" in params:
+                    params["app_name"] = params.pop("path") # Hacky but works with 'open <path>'
+                    
+            elif intent in ["morning_briefing"]:
+                tool = "secretary"
+                action = "get_morning_briefing"
+                
+            elif intent in ["work_mode", "meeting_mode", "chill_mode"]:
+                tool = "secretary"
+                action = "set_work_mode"
+                params["mode"] = intent.replace("_mode", "")
+                
+            elif intent in ["organize_downloads", "clean_desktop"]:
+                tool = "organizer"
+                
+            elif intent in ["fetch_latest_email", "check_email"]:
+                tool = "gmail"
+                action = "fetch_email"
+            
             return {
-                "intent": classification["intent"],
-                "tool": "system", # Or map to specific tool if possible
-                "action": classification["intent"],
-                "parameters": classification.get("parameters", {}),
+                "intent": intent,
+                "tool": tool,
+                "action": action,
+                "parameters": params,
                 "confirmation_needed": False
             }
             
