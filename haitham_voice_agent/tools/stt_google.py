@@ -32,15 +32,32 @@ def transcribe_arabic_google(audio_bytes: bytes, duration_seconds: float) -> Tup
             logger.error("Google Cloud credentials not found. Run: gcloud auth application-default login")
             return "", 0.0
         
+        # Detect sample rate from audio
+        # The audio_bytes should be WAV format with header
+        import wave
+        import io
+        
+        try:
+            with wave.open(io.BytesIO(audio_bytes), 'rb') as wav_file:
+                sample_rate = wav_file.getframerate()
+                channels = wav_file.getnchannels()
+        except Exception as e:
+            logger.warning(f"Could not detect sample rate from audio: {e}. Using default 16000Hz")
+            sample_rate = 16000
+            channels = 1
+        
+        logger.info(f"Detected audio: {sample_rate}Hz, {channels} channel(s)")
+        
         # Configure recognition
         audio = speech.RecognitionAudio(content=audio_bytes)
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=16000,
+            sample_rate_hertz=sample_rate,  # Use detected sample rate
             language_code="ar-SA",  # Saudi Arabic
             enable_automatic_punctuation=True,
             model="default",  # Use default model for best accuracy
             use_enhanced=True,  # Use enhanced model if available
+            audio_channel_count=channels,
         )
         
         logger.info(f"Transcribing {duration_seconds:.1f}s of Arabic audio with Google Cloud STT...")
