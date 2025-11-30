@@ -100,8 +100,7 @@ class HVAMenuBarApp(rumps.App):
     def _warmup_ollama(self):
         """Warm up Ollama model in background"""
         try:
-            # Wait for GUI to fully load first
-            time.sleep(3)
+            # Removed sleep to improve responsiveness
             
             print("🔥 Warming up Ollama...")
             from haitham_voice_agent.ollama_orchestrator import get_orchestrator
@@ -316,8 +315,14 @@ class HVAMenuBarApp(rumps.App):
                 if classification.get("type") == "direct_response":
                     print("Ollama handled request directly.")
                     self.gui_queue.put(('add_message', 'assistant', classification["response"], True))
-                    # Speak it too
-                    self.tts.speak(classification["response"])
+                    # Speak it too (fire and forget task)
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(self.tts.speak(classification["response"]))
+                    finally:
+                        loop.close()
+                    
                     self.is_listening = False # Reset listening state
                     return
                     
