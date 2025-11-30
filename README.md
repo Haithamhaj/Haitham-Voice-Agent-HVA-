@@ -1,3 +1,7 @@
+Of course. As an expert technical writer, I will update the README.md for the Haitham Voice Agent project to accurately reflect the current state of the codebase. The updated version will include new modules, refine the project structure, and ensure all features are correctly documented.
+
+Here is the complete, updated `README.md` content:
+
 # Haitham Voice Agent (HVA) 🎤🤖
 
 <div dir="rtl">
@@ -278,12 +282,14 @@ haitham_voice_agent/
 ├── 🖥️ gui_process.py             # عملية الواجهة الرسومية (PyQt) | GUI Process
 ├── 🖼️ gui_widgets.py             # مكونات الواجهة الرسومية | GUI Widgets
 ├── ⚙️ config.py                  # إدارة التكوين المركزي | Central Configuration
+├── main.py                      # نقطة الدخول للأوضاع المختلفة | Main Entry Point
 ├── 🎤 stt.py                     # منسق تحويل الكلام لنص | STT Orchestrator
 ├── 🔊 tts.py                     # منسق تحويل النص لكلام | TTS Orchestrator
 ├── 👂 wake_word.py               # كشف كلمة الإيقاظ | Wake Word Detection
 ├── 🧭 intent_router.py           # موجه النوايا الحتمي | Deterministic Intent Router
 ├── 🤖 llm_router.py              # موجه LLM (Gemini vs GPT) | LLM Router
 ├── 🔀 model_router.py            # موجه النموذج (e.g., mini vs standard) | Model Router
+├── ☁️ ollama_orchestrator.py     # منسق Ollama (محلي مقابل سحابي) | Ollama Orchestrator
 ├── 📡 dispatcher.py              # موزع الأدوات | Tool Dispatcher
 │
 ├── 🧠 memory/                     # نظام الذاكرة الجديد | New Memory System
@@ -305,37 +311,39 @@ haitham_voice_agent/
 │   ├── 📧 gmail/                # وحدة Gmail الكاملة | Full Gmail Module
 │   │   ├── connection_manager.py
 │   │   ├── gmail_api_handler.py
-│   │   ├── imap_handler.py
-│   │   ├── smtp_handler.py
 │   │   ├── llm_helper.py
-│   │   ├── auth/
-│   │   ├── models/
-│   │   └── utils/
+│   │   └── ... (auth, models, etc.)
 │   │
 │   ├── 🎙️ voice/               # أدوات الصوت الداخلية | Internal Voice Tools
 │   │   ├── recorder.py          # مسجل الجلسات الطويلة | Session Recorder
-│   │   └── stt.py               # محرك STT المحلي (Whisper) | Local STT Engine
+│   │   ├── stt.py               # محرك STT المحلي (Whisper) | Local STT Engine
+│   │   └── tts.py               # وحدة TTS الداخلية | Internal TTS Module
 │   │
 │   ├── 🗣️ stt_router.py          # موجه STT (Google vs Whisper) | STT Router
+│   │   ├── stt_google.py
+│   │   ├── stt_whisper_ar.py
+│   │   └── ...
 │   │
 │   ├── 🔷 gemini/               # أدوات Gemini | Gemini Tools
 │   │   ├── gemini_router.py
 │   │   └── model_discovery.py
 │   │
-│   └── ✅ tasks/                # إدارة المهام | Task Management
-│       └── task_manager.py
+│   ├── ✅ tasks/                # إدارة المهام | Task Management
+│   │   └── task_manager.py
+│   │
+│   └── 🧠 memory/               # مكونات الذاكرة منخفضة المستوى | Low-level Memory Components
+│       ├── memory_system.py
+│       ├── intelligence/
+│       ├── models/
+│       └── storage/
 │
 ├── 🧪 tests/                    # الاختبارات | Tests
 │   ├── test_config.py
 │   ├── test_llm_router.py
 │   ├── test_model_router.py
-│   ├── test_tools.py
-│   ├── test_gemini_routing.py
 │   ├── test_gmail_llm.py
-│   ├── test_memory_foundation.py
 │   ├── test_memory_live.py
-│   ├── test_voice_local.py
-│   └── test_bridge_live.py
+│   └── ... (all other tests)
 │
 ├── 📋 domain/                   # نماذج المجال (المشاريع، المهام) | Domain Models
 │   └── models.py
@@ -451,8 +459,8 @@ You should see a confirmation message of successful configuration.
 The easiest and best way for daily use is via the menu bar application.
 
 ```bash
-# شغل المشغل الذكي
-./Start_HVA.command
+# To run the menu bar application directly
+python -m haitham_voice_agent.hva_menubar
 ```
 
 <div dir="rtl">
@@ -492,21 +500,7 @@ After running:
 To run the application in the terminal and see live logs:
 
 ```bash
-python -m haitham_voice_agent.hva_menubar
-```
-
-### وضع الاختبار النصي | Text Test Mode
-
-<div dir="rtl">
-
-لاختبار منطق الأوامر بدون استخدام الصوت:
-
-</div>
-
-To test the command logic without using voice:
-
-```bash
-python -m haitham_voice_agent.main --test "List files in my Downloads folder"
+python -m haitham_voice_agent.main
 ```
 
 ---
@@ -521,6 +515,7 @@ This section provides a high-level overview of the key modules.
 -   **`gui_process.py`**: Runs the PyQt-based graphical user interface in a separate process to ensure the main application remains responsive. Handles all visual elements and user interactions.
 -   **`dispatcher.py`**: Receives a structured execution plan from the LLM and routes each step to the appropriate tool (e.g., `files.list_files`).
 -   **`config.py`**: Centralized configuration hub. Loads environment variables, defines paths, and sets system-wide constants.
+-   **`ollama_orchestrator.py`**: Acts as a middleware layer to intelligently route LLM requests between a local Ollama instance (for speed and privacy) and powerful cloud models (for complex tasks), optimizing for performance and cost.
 
 ### 2️⃣ طبقة التوجيه | Routing Layer
 
@@ -528,14 +523,20 @@ This section provides a high-level overview of the key modules.
 -   **`llm_router.py`**: The second layer. Decides whether to use the Gemini or GPT model family based on the task type (e.g., Gemini for analysis, GPT for tool use).
 -   **`model_router.py`**: The third layer. Selects the specific model variant (e.g., `gpt-4o-mini` vs `gpt-4o`) based on task metadata like risk and complexity to optimize for cost.
 
-### 3️⃣ نظام الذاكرة | Memory System
+### 3️⃣ نظام الصوت والكلام | Voice & Speech System
+
+-   **`stt.py` & `tts.py`**: Top-level orchestrators for handling all speech-to-text and text-to-speech operations.
+-   **`tools/voice/`**: Contains the low-level implementation for local voice processing, including the session recorder (`recorder.py`) and the local `faster-whisper` engine (`stt.py`).
+-   **`tools/stt_router.py`**: Manages a collection of STT providers. This includes high-accuracy cloud providers like Google (`stt_google.py`) and local models like Whisper (`stt_whisper_ar.py`), allowing the system to choose the best engine for the job (e.g., Google for short commands, Whisper for long dictation).
+
+### 4️⃣ نظام الذاكرة | Memory System
 
 -   **`memory/manager.py`**: The primary interface for the memory system. Orchestrates saving and retrieving information across all three layers.
 -   **`tools/workspace_manager.py`**: Manages the structured file-based memory (Layer 1), creating project folders and notes.
--   **`memory/vector_store.py`**: Manages the vector database (Layer 2) for semantic search using ChromaDB.
--   **`memory/graph_store.py`**: Manages the knowledge graph (Layer 3), connecting entities and relationships using NetworkX.
+-   **`memory/vector_store.py`**: Manages the vector database (Layer 2) for semantic search.
+-   **`memory/graph_store.py`**: Manages the knowledge graph (Layer 3), connecting entities and relationships.
 
-### 4️⃣ وحدة Gmail | Gmail Module (`tools/gmail/`)
+### 5️⃣ وحدة Gmail | Gmail Module (`tools/gmail/`)
 
 -   **`connection_manager.py`**: Intelligently switches between the Gmail API and a fallback IMAP/SMTP connection.
 -   **`gmail_api_handler.py`**: Implements all primary functions (fetch, search, draft) using the official Google API.
@@ -543,7 +544,7 @@ This section provides a high-level overview of the key modules.
 -   **`auth/credentials_store.py`**: Securely stores encrypted credentials in the macOS Keychain.
 -   **`llm_helper.py`**: Provides LLM-powered enhancements like summarization and task extraction for emails.
 
-### 5️⃣ الأدوات المتخصصة | Specialist Tools
+### 6️⃣ الأدوات المتخصصة | Specialist Tools
 
 -   **`tools/secretary.py`**: Implements the "Executive Secretary" persona, handling routines like the morning briefing and work modes.
 -   **`tools/advisor.py`**: Implements the "Honest Advisor" persona, providing safety checks and wellness reminders.
@@ -636,17 +637,13 @@ pytest -v
 
 **المشكلة**: فشل تدفق OAuth أو ظهور خطأ `token has been expired or revoked`.
 
-**الحل**: بيانات الاعتماد القديمة قد تكون غير صالحة. قم بإزالتها لإعادة المصادقة:
-`rm ~/.hva_credentials/gmail_token.json`
-في المرة التالية التي تستخدم فيها ميزة Gmail، سيتم تشغيل تدفق المصادقة الجديد.
+**الحل**: بيانات الاعتماد القديمة قد تكون غير صالحة. قم بإزالتها لإعادة المصادقة. ابحث عن ملف `gmail_token.json` في مجلد بيانات اعتماد المشروع (عادة `~/.hva_credentials/`) واحذفه. في المرة التالية التي تستخدم فيها ميزة Gmail، سيتم تشغيل تدفق المصادقة الجديد.
 
 </div>
 
 **Problem**: OAuth flow fails or you get a `token has been expired or revoked` error.
 
-**Solution**: The old token may be invalid. Remove it to re-authenticate:
-`rm ~/.hva_credentials/gmail_token.json`
-The next time you use a Gmail feature, the new authentication flow will be triggered.
+**Solution**: The old token may be invalid. Remove it to re-authenticate. Find and delete the `gmail_token.json` file in the project's credential directory (usually `~/.hva_credentials/`). The next time you use a Gmail feature, the new authentication flow will be triggered.
 
 ### السجلات | Logs
 

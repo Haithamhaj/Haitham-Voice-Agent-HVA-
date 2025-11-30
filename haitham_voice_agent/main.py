@@ -55,10 +55,7 @@ def validate_config() -> bool:
         return False
     return True
 
-        logger.warning(f"⚠️ FOUND LEGACY GEMINI REFERENCES IN: {found_files}")
-        # We won't crash, just warn, as it might be in comments
-    else:
-        logger.info("✅ No legacy Gemini 1.5 references found.")
+
 
 
 class HVA:
