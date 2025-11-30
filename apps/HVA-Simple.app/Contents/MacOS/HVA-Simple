@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Run HVA Simple in background without terminal window
+cd "/Users/haitham/development/Haitham Voice Agent (HVA)"
+
+# Activate virtual environment and run in background
+nohup .venv/bin/python -m haitham_voice_agent.hva_menubar > /dev/null 2>&1 &
+
+# Exit immediately so terminal doesn't stay open
+exit 0

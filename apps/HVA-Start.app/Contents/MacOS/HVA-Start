@@ -1,0 +1,3 @@
+#!/bin/bash
+cd "/Users/haitham/development/Haitham Voice Agent (HVA)"
+osascript -e "tell application \"Terminal\" to do script \"cd \\\"$PROJECT_DIR\\\" && source .venv/bin/activate && python -m haitham_voice_agent.main\""
