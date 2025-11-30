@@ -1,3 +1,0 @@
-#!/bin/bash
-cd "/Users/haitham/development/Haitham Voice Agent (HVA)"
-open "dashboard/index.html"

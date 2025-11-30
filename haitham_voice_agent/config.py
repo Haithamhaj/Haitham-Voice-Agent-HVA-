@@ -166,7 +166,7 @@ class Config:
     
     # Strict STT Filtering Configuration
     STT_STRICT_CONFIG = {
-        "min_confidence": 0.70,   # High confidence required
+        "min_confidence": 0.50,   # Lowered for better acceptance (was 0.70)
         "min_length": 6,          # Minimum characters
         "max_realtime_seconds": 10.0  # Threshold for treating as long speech/note
     }
