@@ -56,13 +56,20 @@ def listen_once(duration: int = 5) -> Optional[str]:
         stream.stop_stream()
         stream.close()
         
-        # Save to temp file to get bytes
-        # (stt_router expects bytes, but we can also just join frames)
-        raw_data = b''.join(frames)
+        # Save to WAV in memory
+        import io
+        wav_buffer = io.BytesIO()
+        with wave.open(wav_buffer, 'wb') as wf:
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(p.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b''.join(frames))
+            
+        wav_bytes = wav_buffer.getvalue()
         
         # Transcribe
-        logger.info("Transcribing...")
-        text = transcribe_command(raw_data, duration)
+        logger.info(f"Transcribing {len(wav_bytes)} bytes of WAV audio...")
+        text = transcribe_command(wav_bytes, duration)
         
         return text
         
