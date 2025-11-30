@@ -165,7 +165,9 @@ class HVAMenuBarApp(rumps.App):
             
         except Exception as e:
             print(f"❌ Error processing manual command: {e}")
-            self.gui_queue.put(('add_message', 'error', f'خطأ: {str(e)}', True))
+            import traceback
+            traceback.print_exc()
+            self.gui_queue.put(('add_message', 'error', f'حدث خطأ غير متوقع: {str(e)}', True))
 
     def start_listening(self, _):
         """Start listening for voice command"""
