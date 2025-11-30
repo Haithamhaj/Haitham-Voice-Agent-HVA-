@@ -51,6 +51,13 @@ class FileTools:
             # Default to home if not specified
             if not actual_dir:
                 actual_dir = "~"
+            
+            # Smart Alias: Map user name to home directory
+            import getpass
+            current_user = getpass.getuser()
+            if actual_dir.lower() == current_user.lower() or actual_dir.lower() == "haitham":
+                logger.info(f"Mapping '{actual_dir}' to Home Directory")
+                actual_dir = "~"
                 
             dir_path = Path(actual_dir).expanduser()
             
