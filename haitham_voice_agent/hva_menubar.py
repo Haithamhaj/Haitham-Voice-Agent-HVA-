@@ -235,8 +235,8 @@ class HVAMenuBarApp(rumps.App):
                         # Check if it looks like a file list
                         if '\n' in data_str and ('.txt' in data_str or '.pdf' in data_str or '.py' in data_str):
                              self.gui_queue.put(('add_message', 'file_list', data_str, True))
-                        elif "Organized" in data_str or "Cleaned" in data_str:
-                             # Show full report for organizer
+                        elif "Organized" in data_str or "Cleaned" in data_str or "Briefing" in data_str:
+                             # Show full report for organizer/briefing
                              self.gui_queue.put(('add_message', 'success', data_str, True))
                         else:
                              self.gui_queue.put(('add_message', 'success', data_str[:500], True))

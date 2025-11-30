@@ -44,6 +44,7 @@ from haitham_voice_agent.tools.tasks.task_manager import task_manager
 from haitham_voice_agent.tools.files import FileTools
 from haitham_voice_agent.tools.system_tools import SystemTools
 from haitham_voice_agent.tools.smart_organizer import get_organizer
+from haitham_voice_agent.tools.secretary import get_secretary
 
 def validate_config() -> bool:
     """Validates the application configuration."""
@@ -517,11 +518,18 @@ Output format: JSON
 - clean_desktop: تنظيف سطح المكتب
 - الكلمات الدالة: "رتب التنزيلات"، "نظف سطح المكتب"، "فرز الملفات"
 
+## 7. secretary (السكرتير التنفيذي)
+- get_morning_briefing: عرض الموجز الصباحي
+- set_work_mode: تغيير وضع العمل (work, meeting, chill)
+- الكلمات الدالة: "صباح الخير"، "وضع العمل"، "اجتماع"، "استراحة"
+
 # قواعد مهمة:
 1. "افتح مجلد جديد" أو "أنشئ مجلد" = files.create_folder (ليس memory!)
 2. "افتح تطبيق" أو "شغّل برنامج" = system.open_app
 3. "احفظ ملاحظة" أو "سجّل فكرة" = memory.save_note
 4. "رتب التنزيلات" = organizer.organize_downloads
+5. "صباح الخير" = secretary.get_morning_briefing
+6. "وضع العمل" = secretary.set_work_mode(mode='work')
 5. "نظف سطح المكتب" = organizer.clean_desktop
 4. إذا ذكر اسم "هيثم" أو "هيم" كمجلد = يقصد مجلد المستخدم الرئيسي ~/
 5. **"داخل" تعني مسار متداخل:** "ملف X داخل مجلد Y" = "Y/X" (مهم جداً!)
@@ -831,6 +839,18 @@ Output format: JSON
                     msg += f"Moved to: {Path(res['dest_folder']).name}"
                 return {"success": True, "message": msg, "data": msg}
 
+        elif tool == "secretary":
+            secretary = get_secretary()
+            
+            if action == "get_morning_briefing":
+                res = await secretary.get_morning_briefing()
+                # Return data for GUI to render nicely
+                return {"success": True, "message": res["text"], "data": res["text"]}
+                
+            elif action == "set_work_mode":
+                mode = params.get("mode") or plan.get("intent")
+                msg = await secretary.set_work_mode(mode)
+                return {"success": True, "message": msg, "data": msg}
             
             elif action == "mute":
                 return await self.system_tools.mute_volume()
