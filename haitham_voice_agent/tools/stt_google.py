@@ -54,6 +54,7 @@ def transcribe_arabic_google(audio_bytes: bytes, duration_seconds: float) -> Tup
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=sample_rate,  # Use detected sample rate
             language_code="ar-SA",  # Saudi Arabic
+            alternative_language_codes=["en-US"],  # Support mixed English/Arabic
             enable_automatic_punctuation=True,
             model="default",  # Use default model for best accuracy
             use_enhanced=True,  # Use enhanced model if available

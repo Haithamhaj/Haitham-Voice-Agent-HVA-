@@ -78,7 +78,8 @@ class HVAMenuBarApp(rumps.App):
             text = stt.listen_once()
             
             if not text:
-                self.gui_queue.put(('add_message', 'error', 'لم أسمع شيئاً / No speech detected', True))
+                # Just a timeout, not a critical error
+                self.gui_queue.put(('add_message', 'info', "Listening paused (Timeout) / انتهى الوقت", True))
                 self.is_listening = False
                 return
             
