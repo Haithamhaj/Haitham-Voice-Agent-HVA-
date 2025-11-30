@@ -54,7 +54,10 @@ A voice-operated automation agent for macOS with hybrid LLM routing, Gmail integ
 
 <div dir="rtl">
 
-- **تحويل الكلام إلى نص (STT)**: استراتيجية هجينة للدقة والتكلفة
+- **تحويل الكلام إلى نص (STT)**: استراتيجية هجينة محسّنة للدقة والتكلفة
+  - **Voice Activity Detection (VAD)**: كشف تلقائي للنشاط الصوتي
+  - **Mixed Language Support**: دعم محسّن للغات المختلطة
+  - **Smart Timeout Handling**: معالجة ذكية لانتهاء الوقت
   - **للأوامر القصيرة:** Google Cloud Speech-to-Text (دقة 90-95%)
   - **للتسجيلات الطويلة:** Whisper `large-v3` المحلي (دقة 75-85%)
   - دعم كامل للعربية (ar-SA) والإنجليزية (en-US)
@@ -68,7 +71,10 @@ A voice-operated automation agent for macOS with hybrid LLM routing, Gmail integ
 
 </div>
 
-- **Speech-to-Text (STT)**: Hybrid strategy for accuracy and cost
+- **Speech-to-Text (STT)**: Enhanced hybrid strategy for accuracy and cost
+  - **Voice Activity Detection (VAD)**: Automatic voice activity detection
+  - **Mixed Language Support**: Improved support for mixed languages
+  - **Smart Timeout Handling**: Intelligent timeout management
   - **For short commands:** Google Cloud Speech-to-Text (90-95% accuracy)
   - **For long sessions:** Whisper `large-v3` local (75-85% accuracy)
   - Full support for Arabic (ar-SA) and English (en-US)
@@ -79,6 +85,44 @@ A voice-operated automation agent for macOS with hybrid LLM routing, Gmail integ
   - "Majed" voice for Arabic
   - "Samantha/Alex" voices for English
   - Automatic response in detected language
+
+### 🖥️ الواجهة الرسومية التفاعلية | Interactive GUI
+
+<div dir="rtl">
+
+- **نافذة ذكية**: واجهة رسومية حديثة مع تصميم glassmorphism
+- **مؤشر نبضي**: رسوم متحركة تفاعلية أثناء الاستماع والمعالجة
+- **روابط قابلة للنقر**: فتح الملفات والروابط مباشرة من النافذة
+- **إدخال يدوي**: إمكانية كتابة الأوامر بدلاً من الصوت
+- **تثبيت النافذة**: خيار لإبقاء النافذة مفتوحة
+- **إغلاق تلقائي**: إغلاق تلقائي بعد 15 ثانية (قابل للتعطيل)
+
+</div>
+
+- **Smart Window**: Modern GUI with glassmorphism design
+- **Pulse Indicator**: Interactive animations during listening and processing
+- **Clickable Links**: Open files and links directly from window
+- **Manual Input**: Type commands instead of voice
+- **Pin Window**: Option to keep window open
+- **Auto-close**: Automatic close after 15 seconds (can be disabled)
+
+### 📱 تطبيق شريط القوائم | Menu Bar App
+
+<div dir="rtl">
+
+- **اختصار عالمي**: `⌘⇧H` (Cmd+Shift+H) للاستماع من أي مكان
+- **عمل في الخلفية**: لا حاجة لنافذة Terminal مفتوحة
+- **قائمة سريعة**: الوصول السريع لجميع الوظائف
+- **إشعارات**: إشعارات macOS عند اكتمال المهام
+- **تكامل GUI**: عرض النتائج في نافذة تفاعلية
+
+</div>
+
+- **Global Hotkey**: `⌘⇧H` (Cmd+Shift+H) to listen from anywhere
+- **Background Operation**: No need for Terminal window
+- **Quick Menu**: Fast access to all functions
+- **Notifications**: macOS notifications when tasks complete
+- **GUI Integration**: Display results in interactive window
 
 ### 🤖 التوجيه الهجين للذكاء الاصطناعي | Hybrid LLM Routing
 
@@ -158,6 +202,8 @@ Advanced memory system that persistently stores knowledge:
 
 - **العمليات الأساسية**: عرض، بحث، فتح، نسخ، نقل، إعادة تسمية
 - **إدارة المجلدات**: إنشاء، حذف (مع تأكيد)
+- **حل ذكي للمسارات**: دعم aliases مثل "home" و "desktop"
+- **المجلد الافتراضي**: استخدام المجلد الرئيسي كافتراضي
 - **الترتيب**: ترتيب الملفات حسب معايير مختلفة
 - **الأمان**: تأكيد للعمليات المدمرة
 
@@ -165,6 +211,8 @@ Advanced memory system that persistently stores knowledge:
 
 - **Basic Operations**: List, search, open, copy, move, rename
 - **Folder Management**: Create, delete (with confirmation)
+- **Smart Path Resolution**: Support for aliases like "home" and "desktop"
+- **Default Folder**: Use home directory as default
 - **Sorting**: Sort files by various criteria
 - **Safety**: Confirmation for destructive operations
 
@@ -277,6 +325,8 @@ ls, pwd, echo, whoami, df
 ```
 haitham_voice_agent/
 ├── 📄 main.py                    # المنسق الرئيسي | Main orchestrator
+├── 🖥️ gui_process.py             # الواجهة الرسومية | GUI Process
+├── 📱 hva_menubar.py             # تطبيق شريط القوائم | Menu Bar App
 ├── ⚙️ config.py                  # إدارة التكوين | Configuration management
 ├── 🎤 stt.py                     # تحويل الكلام لنص | Speech-to-Text
 ├── 🔊 tts.py                     # تحويل النص لكلام | Text-to-Speech
@@ -484,6 +534,52 @@ You should see a confirmation message of successful configuration.
 ---
 
 ## 💡 الاستخدام | Usage
+
+### وضع شريط القوائم (الموصى به) | Menu Bar Mode (Recommended)
+
+<div dir="rtl">
+
+أسهل طريقة للاستخدام اليومي:
+
+</div>
+
+Easiest way for daily use:
+
+```bash
+# تشغيل تطبيق شريط القوائم
+./HVA\ Simple.command
+
+# أو
+python -m haitham_voice_agent.hva_menubar
+```
+
+<div dir="rtl">
+
+بعد التشغيل:
+1. ستظهر أيقونة 🎤 في شريط القوائم
+2. اضغط `⌘⇧H` في أي وقت للاستماع
+3. قل "هيثم" + أمرك
+4. ستظهر النتائج في نافذة تفاعلية
+
+**المميزات:**
+- عمل في الخلفية بدون نوافذ Terminal
+- اختصار كيبورد عالمي من أي مكان
+- واجهة رسومية تفاعلية للنتائج
+- إمكانية الإدخال اليدوي (كتابة الأوامر)
+
+</div>
+
+After running:
+1. 🎤 icon appears in menu bar
+2. Press `⌘⇧H` anytime to listen
+3. Say "هيثم" + your command
+4. Results appear in interactive window
+
+**Features:**
+- Background operation without Terminal windows
+- Global keyboard shortcut from anywhere
+- Interactive GUI for results
+- Manual input capability (type commands)
 
 ### التشغيل الذكي | Smart Launch
 
@@ -718,6 +814,108 @@ speak("Hello there", language="en")
 - Task management
 - File operations
 - System control
+
+### 🖥️ الواجهة الرسومية | GUI Process
+
+<div dir="rtl">
+
+**الملف**: `gui_process.py`
+
+**الغرض**: واجهة رسومية تفاعلية لعرض النتائج والتفاعل مع النظام
+
+**المميزات**:
+- نافذة Tkinter حديثة مع تصميم عصري
+- مؤشر نبضي للحالة (استماع/معالجة)
+- دعم الروابط القابلة للنقر
+- إدخال يدوي للأوامر
+- إغلاق تلقائي ذكي مع خيار التثبيت
+
+</div>
+
+**File**: `gui_process.py`
+
+**Purpose**: Interactive GUI for displaying results and interacting with the system
+
+**Features**:
+- Modern Tkinter window with contemporary design
+- Pulse indicator for status (listening/processing)
+- Clickable links support
+- Manual command input
+- Smart auto-close with pin option
+
+**Usage**:
+
+```python
+from haitham_voice_agent.gui_process import run_gui_process
+import multiprocessing
+
+# Create queues for communication
+gui_queue = multiprocessing.Queue()
+cmd_queue = multiprocessing.Queue()
+
+# Start GUI process
+gui_process = multiprocessing.Process(
+    target=run_gui_process, 
+    args=(gui_queue, cmd_queue)
+)
+gui_process.start()
+
+# Send messages to GUI
+gui_queue.put(('show',))  # Show window
+gui_queue.put(('add_message', 'assistant', 'Hello!', False))
+gui_queue.put(('add_message', 'success', 'Task completed', True))
+
+# Listen for commands from GUI
+cmd = cmd_queue.get()  # Returns ('command', 'user text')
+```
+
+### 📱 تطبيق شريط القوائم | Menu Bar App
+
+<div dir="rtl">
+
+**الملف**: `hva_menubar.py`
+
+**الغرض**: تطبيق شريط قوائم macOS مع اختصار كيبورد عالمي
+
+**المميزات**:
+- اختصار `⌘⇧H` للاستماع من أي مكان
+- قائمة سريعة للوظائف
+- عمل في الخلفية بدون Terminal
+- تكامل مع GUI Process
+- دعم الإدخال اليدوي والصوتي
+- كشف كلمة الإيقاظ "هيثم"
+
+</div>
+
+**File**: `hva_menubar.py`
+
+**Purpose**: macOS menu bar app with global keyboard shortcut
+
+**Features**:
+- `⌘⇧H` hotkey to listen from anywhere
+- Quick menu for functions
+- Background operation without Terminal
+- Integration with GUI Process
+- Support for manual and voice input
+- Wake word detection "هيثم"
+
+**Usage**:
+
+```bash
+# Run directly
+python -m haitham_voice_agent.hva_menubar
+
+# Or use launcher
+./HVA\ Simple.command
+```
+
+**Menu Options**:
+- 🎤 Listen (⌘⇧H) - Start voice listening
+- 📝 Show Window - Display GUI window
+- 🔄 Reset State - Reset application state
+- 🗑️ Clear History - Clear conversation history
+- ℹ️ About - Show about dialog
+- ⏹️ Quit - Exit application
 
 ### 3️⃣ موجه LLM | LLM Router
 
