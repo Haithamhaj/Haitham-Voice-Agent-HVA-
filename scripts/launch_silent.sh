@@ -13,10 +13,9 @@ if [ ! -f "$PYTHON_EXEC" ]; then
     exit 1
 fi
 
-# Run the menubar app in the background using nohup
-# We redirect output to a log file instead of the terminal
+# Run the app wrapper (which checks dependencies) in the background
 cd "$PROJECT_ROOT"
-nohup "$PYTHON_EXEC" -m haitham_voice_agent.hva_menubar > "$PROJECT_ROOT/hva.log" 2>&1 &
+nohup "$PYTHON_EXEC" run_app.py > "$PROJECT_ROOT/hva.log" 2>&1 &
 
 # Notify user
 osascript -e 'display notification "HVA is running in the menu bar" with title "Haitham Voice Agent"'
