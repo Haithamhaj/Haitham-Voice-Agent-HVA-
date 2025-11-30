@@ -259,7 +259,7 @@ class HVA:
                         self.speak(f"- {t.title}")
                 return
         
-            elif action == "search_notes":
+            elif intent["action"] == "search_notes":
                 # Default search for "last notes" or just general listing
                 # We can search for "*" or just fetch recent
                 # For now, let's search for "note" or "ملاحظة" to get everything, or rely on empty query if supported
@@ -499,30 +499,46 @@ Output format: JSON
         # Choose Model
         decision = choose_model(meta)
         model_name = Config.resolve_model(decision["model"])
-        
-        logger.info(f"Planning with {model_name}")
-        
-        # Generate Plan
         prompt = f"""
+You are the intelligent brain of Haitham Voice Agent (HVA).
+Your goal is to understand the user's intent and map it to the correct tool and action.
+
 User said: "{text}"
-Generate execution plan JSON:
+
+Available Tools:
+1. memory: For saving notes, ideas, and retrieving past information.
+2. gmail: For reading, searching, and sending emails.
+3. tasks: For managing to-do lists (add, list, complete).
+4. files: For listing and searching local files.
+5. system: For controlling the device (apps, volume, display).
+
+Output Schema (JSON):
 {{
-    "intent": "description",
+    "intent": "Brief description of what the user wants",
     "tool": "memory|gmail|tasks|files|system|other",
     "action": "save_note|search|fetch_email|send_email|create_task|list_tasks|complete_task|list_files|search_files|open_app|set_volume|mute|unmute|sleep_display",
     "parameters": {{
-        "title": "task title",
-        "project_id": "project slug (optional)",
-        "due_date": "ISO date (optional)",
-        "query": "search query",
-        "content": "note content",
-        "directory": "directory path or name",
-        "pattern": "file pattern (optional)",
-        "app_name": "application name",
-        "level": "volume level (0-100)"
+        "title": "Task title",
+        "project_id": "Project name (e.g. 'work', 'personal')",
+        "due_date": "ISO date",
+        "query": "Search query",
+        "content": "Note content",
+        "directory": "Folder path (e.g. 'development', 'downloads')",
+        "pattern": "File pattern (e.g. '*.py', 'main.py')",
+        "app_name": "App name (e.g. 'Chrome', 'Spotify')",
+        "level": "Volume level (0-100)"
     }},
     "confirmation_needed": boolean
 }}
+
+Examples:
+1. "Open a new folder inside Haitham folder" -> {{ "tool": "files", "action": "list_files", "parameters": {{ "directory": "Haitham" }} }} (Assuming user wants to see it, or if they meant 'create', we might need a new action. For now, map 'open folder' to 'list_files')
+2. "Open Google Chrome" -> {{ "tool": "system", "action": "open_app", "parameters": {{ "app_name": "Google Chrome" }} }}
+3. "Search for main.py in development" -> {{ "tool": "files", "action": "search_files", "parameters": {{ "directory": "development", "pattern": "main.py" }} }}
+4. "Turn up the volume" -> {{ "tool": "system", "action": "set_volume", "parameters": {{ "level": null }} }} (System will handle increment)
+5. "Add a task to buy milk tomorrow" -> {{ "tool": "tasks", "action": "create_task", "parameters": {{ "title": "Buy milk", "due_date": "tomorrow" }} }}
+
+Generate the JSON plan:
 """
         response = await self.llm_router.generate_with_gpt(prompt)
         
