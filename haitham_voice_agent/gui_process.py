@@ -168,15 +168,29 @@ class HVAWindow:
             relief=tk.FLAT,
             bd=0
         )
-        self.input_field.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=15)
+        self.input_field.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(20, 10), pady=15)
         self.input_field.bind("<Return>", self.send_command)
+        
+        # Mic Button
+        mic_btn = tk.Button(
+            input_frame, text="🎤", command=self.send_listen_command,
+            bg=COLORS['card_bg'], fg=COLORS['accent'],
+            font=('Helvetica', 16), relief=tk.FLAT, bd=0,
+            cursor="hand2"
+        )
+        mic_btn.pack(side=tk.RIGHT, padx=(0, 10), pady=10, fill=tk.Y)
         
         send_btn = tk.Button(
             input_frame, text="➤", command=self.send_command,
             bg=COLORS['accent'], fg=COLORS['bg'],
-            font=('Helvetica', 14, 'bold'), relief=tk.FLAT, bd=0
+            font=('Helvetica', 14, 'bold'), relief=tk.FLAT, bd=0,
+            cursor="hand2"
         )
-        send_btn.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.Y)
+        send_btn.pack(side=tk.RIGHT, padx=(0, 20), pady=10, fill=tk.Y)
+
+    def send_listen_command(self):
+        """Send listen command to main process"""
+        self.cmd_queue.put(('listen', None))
 
     def init_files_view(self):
         """Initialize Files View"""

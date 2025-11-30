@@ -104,6 +104,11 @@ class HVAMenuBarApp(rumps.App):
                     print(f"⌨️  Manual Command: {content}")
                     # Process the command directly
                     threading.Thread(target=self._process_text_command, args=(content,)).start()
+                elif cmd_type == 'listen':
+                    print("🎤 GUI requested listening")
+                    # Start listening in main thread context (or just call start_listening)
+                    # We use rumps.timer or just call it directly since start_listening handles threading
+                    self.start_listening(None)
             except Exception as e:
                 print(f"Error in command listener: {e}")
                 
