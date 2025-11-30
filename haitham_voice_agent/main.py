@@ -768,23 +768,22 @@ Output format: JSON
             elif action == "create_folder":
                 # Handle nested paths: "folder X inside folder Y"
                 # The LLM should ideally give us "Y/X" in the directory param.
-                # But we need to resolve the base path.
                 raw_dir = params.get("directory", "")
                 
-                # Simple resolution: split by / and resolve first part if it's a known alias
-                parts = raw_dir.split("/")
-                base = self._resolve_path(parts[0])
-                
-                if len(parts) > 1:
-                    # Reconstruct path: base + rest
-                    # Remove ~ if present in base to avoid double expansion issues later if using Path
-                    # But _resolve_path returns ~/... so we should be careful.
-                    # Let's just use the resolved base and append the rest.
-                    # If base is "~", we keep it. If base is "~/Downloads", we keep it.
-                    # We just replace the first part.
-                    full_path = f"{base}/{'/'.join(parts[1:])}"
+                # If the path already starts with ~/ or /, use it as-is
+                if raw_dir.startswith("~/") or raw_dir.startswith("/"):
+                    full_path = raw_dir
                 else:
-                    full_path = base
+                    # Split and resolve
+                    parts = raw_dir.split("/")
+                    base = self._resolve_path(parts[0])
+                    
+                    if len(parts) > 1:
+                        # If base already contains the first part (e.g. "~/Downloads"),
+                        # just append the rest
+                        full_path = f"{base}/{'/'.join(parts[1:])}"
+                    else:
+                        full_path = base
                     
                 res = await self.file_tools.create_folder(full_path)
                 if res.get("error"):

@@ -5,7 +5,7 @@ from typing import Optional, Literal
 from haitham_voice_agent.config import Config
 from haitham_voice_agent.tools.stt_langid import detect_language_whisper
 from haitham_voice_agent.tools.stt_whisper_en import transcribe_english_whisper
-from haitham_voice_agent.tools.stt_wav2vec2_ar import transcribe_arabic_wav2vec2
+from haitham_voice_agent.tools.stt_google import transcribe_arabic_google
 
 logger = logging.getLogger(__name__)
 
@@ -84,9 +84,9 @@ def transcribe_command(audio_bytes: bytes, duration_seconds: float) -> Optional[
         return text
         
     else:
-        # Default to Arabic (Wav2Vec2)
-        logger.info("Routing to Wav2Vec2 Arabic Backend")
-        text, conf = transcribe_arabic_wav2vec2(audio_bytes)
+        # Default to Arabic (Google Cloud STT)
+        logger.info("Routing to Google Cloud STT Arabic Backend")
+        text, conf = transcribe_arabic_google(audio_bytes, duration_seconds)
         
         # 3. Validate Arabic
         if _validate_arabic_transcript(text, conf, config["arabic"]):
@@ -117,13 +117,11 @@ def transcribe_session(audio_bytes: bytes, duration_seconds: float) -> Optional[
             
         return text
     else:
-        # Use Wav2Vec2 Arabic for full session
-        logger.info("Session: Using Wav2Vec2 Arabic")
-        text, conf = transcribe_arabic_wav2vec2(audio_bytes)
+        # Use Google Cloud STT Arabic for full session
+        logger.info("Session: Using Google Cloud STT Arabic")
+        text, conf = transcribe_arabic_google(audio_bytes, duration_seconds)
         
-        # For sessions, we use the same validation logic but maybe we want to be slightly more lenient?
-        # The prompt says "Apply the same pattern for transcribe_session".
-        # Let's use the same validator.
+        # For sessions, we use the same validation logic
         if _validate_arabic_transcript(text, conf, config["arabic"]):
             return text
             
