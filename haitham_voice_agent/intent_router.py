@@ -104,9 +104,7 @@ class IntentRouter:
                 r"افتح تطبيق",
                 r"شغل تطبيق",
                 r"open app",
-                r"launch app",
-                r"افتح",  # General open might conflict, but usually followed by app name
-                r"شغل"
+                r"launch app"
             ],
             "system_control": [
                 r"ارفع الصوت",

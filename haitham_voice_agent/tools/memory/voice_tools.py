@@ -72,7 +72,7 @@ Source: Voice
 {audio_text}
 
 ## Summary
-{memory.summary}
+{memory.ultra_brief}
 
 ## Decisions
 {self._format_list(memory.decisions)}
