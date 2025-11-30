@@ -20,16 +20,25 @@ class VoiceMemoryTools:
             await self.memory_system.initialize()
             self._initialized = True
             
-    async def process_voice_note(self, audio_text: str) -> Dict[str, Any]:
+    async def process_voice_note(self, audio_text: str = None, note: str = None, content: str = None) -> Dict[str, Any]:
         """
         Process a raw voice note and save it as a memory AND a local Markdown file.
         
         Args:
-            audio_text: The transcribed text from STT
+            audio_text: The transcribed text (primary)
+            note: Alias for audio_text
+            content: Alias for audio_text
             
         Returns:
             Dict with result details
         """
+        # Handle aliases
+        actual_text = audio_text or note or content
+        if not actual_text:
+            return {"success": False, "message": "No content provided"}
+            
+        audio_text = actual_text
+
         try:
             await self.ensure_initialized()
             

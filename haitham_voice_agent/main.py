@@ -51,34 +51,6 @@ def validate_config() -> bool:
         return False
     return True
 
-def check_for_legacy_models():
-    """
-    Scan codebase for legacy Gemini 1.5 references.
-    Raises RuntimeError if found (to prevent 404s).
-    """
-    import os
-    
-    logger = logging.getLogger(__name__)
-    legacy_pattern = "gemini-1.5-pro"
-    root_dir = Path(__file__).parent
-    
-    found_files = []
-    
-    for root, _, files in os.walk(root_dir):
-        for file in files:
-            if file.endswith(".py"):
-                path = Path(root) / file
-                try:
-                    content = path.read_text(encoding="utf-8")
-                    if legacy_pattern in content:
-                        # Ignore this check function itself
-                        if "check_for_legacy_models" in content and path.name == "main.py":
-                            continue
-                        found_files.append(str(path))
-                except Exception:
-                    pass
-                    
-    if found_files:
         logger.warning(f"⚠️ FOUND LEGACY GEMINI REFERENCES IN: {found_files}")
         # We won't crash, just warn, as it might be in comments
     else:
@@ -93,9 +65,6 @@ class HVA:
         logger.info(f"Initializing HVA v{Config.HVA_VERSION}")
         logger.info("=" * 60)
         
-        # 0. Safety Check: Ensure no legacy models
-        check_for_legacy_models()
-
         # 1. Initialize Configuration
         if not validate_config():
             raise RuntimeError("Configuration validation failed")

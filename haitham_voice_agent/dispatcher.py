@@ -172,13 +172,22 @@ class ToolDispatcher:
                     # Get value from previous result
                     if 0 <= step_index < len(previous_results):
                         result = previous_results[step_index]
+                        
                         if field:
-                            substituted_value = result.get(field)
+                            if isinstance(result, dict):
+                                substituted_value = result.get(field)
+                            else:
+                                # If result is not a dict, we can't get a field from it
+                                logger.warning(f"Cannot get field '{field}' from non-dict result: {result}")
+                                substituted_value = None
                         else:
                             substituted_value = result
                         
-                        substituted_params[key] = substituted_value
-                        logger.debug(f"Substituted {value} -> {substituted_value}")
+                        if substituted_value is not None:
+                            substituted_params[key] = substituted_value
+                            logger.debug(f"Substituted {value} -> {substituted_value}")
+                        else:
+                            substituted_params[key] = value
                     else:
                         logger.warning(f"Invalid step reference: {value}")
                         substituted_params[key] = value

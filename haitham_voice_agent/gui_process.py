@@ -99,6 +99,12 @@ class HVAWindow:
         
         self.text_area.configure(state='disabled')
         
+        # Add Welcome Message
+        self.text_area.configure(state='normal')
+        self.text_area.insert(tk.END, "\n👋 Welcome to HVA!\n", 'info')
+        self.text_area.insert(tk.END, "Ready to help. Just speak.\n", 'info')
+        self.text_area.configure(state='disabled')
+        
         # Footer
         footer = tk.Frame(self.window, bg=COLORS['header_bg'], height=50)
         footer.pack(fill=tk.X, padx=0, pady=0)

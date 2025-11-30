@@ -232,6 +232,8 @@ CRITICAL RULES:
 - ALWAYS set requires_confirmation=true for: delete, send email, destructive operations
 - NEVER auto-send emails
 - Keep steps clear and sequential
+- "Calendar" or "Meeting" requests -> Use 'tasks' to add a task OR 'memory' to save a note. There is NO 'calendar' tool.
+- "Remember" or "Save" -> Use 'memory' tool (action: save_note).
 """
         
         prompt = f"""
