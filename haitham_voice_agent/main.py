@@ -464,7 +464,38 @@ Output format: JSON
         self.speak("تم حفظ تحليل الجلسة في الذاكرة" if self.language == "ar" else "Session analysis saved to memory")
 
     async def plan_command(self, text: str) -> dict:
-        """Generate execution plan using GPT - Improved for Arabic understanding"""
+        """Generate execution plan using Hybrid Intelligence (Ollama -> GPT)"""
+        
+        # --- 1. Ollama Orchestrator (Local Intelligence) ---
+        from haitham_voice_agent.ollama_orchestrator import get_orchestrator
+        orchestrator = get_orchestrator()
+        
+        classification = await orchestrator.classify_request(text)
+        
+        if classification.get("type") == "direct_response":
+            logger.info("Ollama handled request directly.")
+            return {
+                "intent": "Direct Response",
+                "tool": "system",
+                "action": "speak",
+                "parameters": {"text": classification["response"]},
+                "confirmation_needed": False
+            }
+            
+        elif classification.get("type") == "execute_command":
+            logger.info(f"Ollama identified command: {classification['intent']}")
+            return {
+                "intent": classification["intent"],
+                "tool": "system", # Or map to specific tool if possible
+                "action": classification["intent"],
+                "parameters": classification.get("parameters", {}),
+                "confirmation_needed": False
+            }
+            
+        # If delegate, we continue to GPT/Gemini as usual
+        logger.info(f"Ollama delegated to: {classification.get('delegate_to')} ({classification.get('reason')})")
+        
+        # --- 2. Cloud Intelligence (GPT/Gemini) ---
         
         # Build TaskMeta
         meta = TaskMeta(
