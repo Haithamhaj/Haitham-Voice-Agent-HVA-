@@ -22,6 +22,9 @@ from haitham_voice_agent.tts import get_tts
 from haitham_voice_agent.tools.advisor import get_advisor
 import time
 
+print(f"🐍 Python Executable: {sys.executable}")
+print(f"🐍 Python Path: {sys.path}")
+
 class HVAMenuBarApp(rumps.App):
     def __init__(self):
         super(HVAMenuBarApp, self).__init__(
@@ -97,6 +100,9 @@ class HVAMenuBarApp(rumps.App):
     def _warmup_ollama(self):
         """Warm up Ollama model in background"""
         try:
+            # Wait for GUI to fully load first
+            time.sleep(3)
+            
             print("🔥 Warming up Ollama...")
             from haitham_voice_agent.ollama_orchestrator import get_orchestrator
             orchestrator = get_orchestrator()
