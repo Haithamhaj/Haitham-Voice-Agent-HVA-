@@ -151,7 +151,8 @@ The memory system is unified to act as a single, interconnected "brain":
 - **Idea Agent**: Turns raw ideas into structured projects. Say "I have an idea..." and it creates a full project spec (using **GPT-5 Mini** for speed/cost).
 - **iPhone Sync**: Connect your phone! Tell Siri "Add task to HVA Inbox" and it syncs to HVA memory instantly.
 - **Smart Calendar**: Natural language date parsing ("tomorrow", "next Mon") and smart availability checks ("Am I free?").
-- **Premium GUI**: Stunning Dark Mode interface with live "Active Agent" indicators (Ollama vs GPT).
+- **Premium GUI (v1.9)**: Stunning Dark Mode interface with live "Active Agent" indicators, simulated depth, and polished interactions.
+- **Desktop Experience**: Native macOS App Bundle (`HVA Premium.app`) for one-click launch.
 
 ### 📱 تطبيق شريط القوائم وواجهة المستخدم | Menu Bar App & GUI
 
@@ -339,7 +340,10 @@ cp .env.example .env
 
 ### التشغيل | Running
 
-To run the agent, launch the menu bar application from your terminal:
+**Desktop Launcher (Recommended):**
+Double-click the **HVA Premium.app** on your Desktop.
+
+**Alternative (Terminal):**
 ```bash
 # Run the HVA Menu Bar App
 python -m haitham_voice_agent.hva_menubar
