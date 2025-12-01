@@ -138,7 +138,7 @@ The memory system is unified to act as a single, interconnected "brain":
 <div dir="rtl">
 
 - **Smart Feedback Agent**: نظام "نكز" ذكي في الموجز الصباحي يذكرك بالمشاريع المتوقفة باحترام وتدرج.
-- **Clarification Agent**: لا يفشل عند الغموض! إذا قلت "ذكرني"، سيسألك "بماذا؟" ويسمع إجابتك ليكمل الأمر.
+- **Clarification Agent**: لا يفشل عند الغموض! يستخدم حلقة ذكية (Robust Loop) للتوضيح حتى 3 محاولات. إذا قلت "ذكرني"، سيسألك "بماذا؟" ويسمع إجابتك.
 - **Idea Agent**: حول أفكارك الخام إلى مشاريع منظمة. قل "عندي فكرة..." وسيقوم بإنشاء خطة مشروع كاملة (باستخدام **GPT-5 Mini** للسرعة والتكلفة).
 - **iPhone Sync**: اربط هاتفك بالوكيل! قل لـ Siri: "Add task to HVA Inbox" وسيظهر في ذاكرة HVA فوراً.
 - **Smart Calendar**: فهم كامل للوقت ("غداً"، "الاثنين القادم") وفحص ذكي للتوفر ("هل أنا مشغول؟").
@@ -147,7 +147,7 @@ The memory system is unified to act as a single, interconnected "brain":
 </div>
 
 - **Smart Feedback Agent**: Intelligent "nudge" system in morning briefing for stale projects.
-- **Clarification Agent**: Handles ambiguity gracefully. If you say "Remind me", it asks "About what?" and listens for your answer.
+- **Clarification Agent**: Handles ambiguity gracefully with a robust retry loop (Max 3 attempts). If you say "Remind me", it asks "About what?" and listens for your answer.
 - **Idea Agent**: Turns raw ideas into structured projects. Say "I have an idea..." and it creates a full project spec (using **GPT-5 Mini** for speed/cost).
 - **iPhone Sync**: Connect your phone! Tell Siri "Add task to HVA Inbox" and it syncs to HVA memory instantly.
 - **Smart Calendar**: Natural language date parsing ("tomorrow", "next Mon") and smart availability checks ("Am I free?").
