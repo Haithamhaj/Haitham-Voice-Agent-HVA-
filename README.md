@@ -42,7 +42,7 @@ A voice-operated automation agent for macOS with hybrid LLM routing, full system
 - ✅ **Voice-to-Action Automation**: تحويل الأوامر الصوتية إلى إجراءات تلقائية
 - ✅ **System Awareness**: فهم عميق للجهاز، التطبيقات، والملفات (3-Layer Architecture)
 - ✅ **Hybrid LLM Intelligence**: توجيه ذكي بين نماذج الذكاء الاصطناعي
-- ✅ **Persistent Memory System**: نظام ذاكرة دائم مع بحث دلالي (Integrated with Secretary & Advisor)
+- ✅ **Unified Memory System**: ذاكرة موحدة تعتمد على SQLite و Vector Store (لا يوجد انقسام في الذاكرة)
 - ✅ **Full Gmail Integration**: قراءة، تلخيص، وإنشاء مسودات البريد الإلكتروني
 - ✅ **Safety First**: نظام أمان شامل يمنع الإجراءات المدمرة
 
@@ -81,6 +81,24 @@ We use the "Golden Rule" strategy for best accuracy:
 *   **Short Arabic Commands**: Uses **Google Cloud STT** (High accuracy & speed).
 *   **Long Sessions**: Uses **Whisper Large-v3** (Free, local, handles long context).
 *   **English**: Uses **Whisper** (Local & fast).
+
+### 💾 الذاكرة الموحدة | Unified Memory (New)
+
+<div dir="rtl">
+
+تم توحيد نظام الذاكرة بالكامل ليعمل كـ "عقل واحد":
+*   **SQLite Store**: تخزين منظم للملاحظات، المشاريع، والمهام.
+*   **Vector Store**: بحث دلالي (Semantic Search) للعثور على المعلومات بالمعنى.
+*   **Graph Store**: ربط العلاقات بين الأفكار والمشاريع.
+*   **تكامل كامل**: السكرتير (Secretary) والمستشار (Advisor) يقرأون ويكتبون في نفس قاعدة البيانات.
+
+</div>
+
+The memory system is fully unified to act as a "Single Brain":
+*   **SQLite Store**: Structured storage for notes, projects, and tasks.
+*   **Vector Store**: Semantic search to find information by meaning.
+*   **Graph Store**: Linking relationships between ideas and projects.
+*   **Full Integration**: Secretary and Advisor read/write to the same database.
 
 ### 📱 تطبيق شريط القوائم | Menu Bar App
 
@@ -131,6 +149,7 @@ We use the "Golden Rule" strategy for best accuracy:
 │               Tools Layer                │
 ├──────────────────────────────────────────┤
 │ Files │ Apps │ Gmail │ Memory │ System   │
+│                      │ (SQLite)          │
 └──────────────────────────────────────────┘
 ```
 
@@ -159,8 +178,12 @@ haitham_voice_agent/
 │   ├── files.py                 # عمليات الملفات
 │   ├── system_tools.py          # أدوات النظام
 │   ├── gmail/                   # وحدة Gmail
-│   ├── secretary.py             # (Memory Integrated)
-│   └── advisor.py               # (Memory Integrated)
+│   ├── secretary.py             # (Memory Integrated - SQLite)
+│   └── advisor.py               # (Memory Integrated - SQLite)
+│
+├── 💾 memory/                    # نظام الذاكرة الموحد
+│   ├── manager.py               # Unified Wrapper
+│   └── ...
 │
 ├── ☁️ ollama_orchestrator.py     # منسق الذكاء الاصطناعي المحلي
 └── 🛡️ docs/                      # وثائق الأمان والنظام

@@ -15,6 +15,7 @@ class MemoryType(Enum):
     REFLECTION = "reflection"
     REMINDER = "reminder"
     INSIGHT = "insight"
+    PROJECT = "project"
 
 class MemorySource(Enum):
     """Source of memory"""

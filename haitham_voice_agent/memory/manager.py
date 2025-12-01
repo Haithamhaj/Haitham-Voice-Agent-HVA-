@@ -1,73 +1,87 @@
-import os
 import logging
 import datetime
-from pathlib import Path
+import uuid
 from typing import Dict, Any, Optional, List
-import asyncio
 
 from haitham_voice_agent.llm_router import LLMRouter
 from haitham_voice_agent.config import Config
 from haitham_voice_agent.memory.vector_store import get_vector_store
 from haitham_voice_agent.memory.graph_store import get_graph_store
+from haitham_voice_agent.tools.memory.storage.sqlite_store import SQLiteStore
+from haitham_voice_agent.tools.memory.models.memory import Memory, MemoryType, MemorySource, SensitivityLevel
 
 logger = logging.getLogger(__name__)
 
 class MemoryManager:
     """
-    Structured Local Memory Manager (Layer 1)
-    Handles Projects, Concepts, and Auto-Summarization.
+    Unified Memory Manager (Wrapper around SQLite + Vector Store).
+    Replaces file-based storage with SQLite.
     """
     
     def __init__(self):
-        self.memory_root = Path.home() / "HVA_Memory"
-        self.projects_dir = self.memory_root / "Projects"
-        self.concepts_dir = self.memory_root / "Concepts"
-        self.archives_dir = self.memory_root / "Archives"
-        self.inbox_dir = self.memory_root / "Inbox"
-        
-        self.llm_router = LLMRouter()
+        self.sqlite_store = SQLiteStore()
         self.vector_store = get_vector_store()
         self.graph_store = get_graph_store()
+        self.llm_router = LLMRouter()
         
-        # Ensure structure exists
-        self.initialize_memory()
-            
-    def initialize_memory(self):
-        """Create basic directory structure"""
-        for d in [self.projects_dir, self.concepts_dir, self.archives_dir, self.inbox_dir]:
-            d.mkdir(parents=True, exist_ok=True)
-            
-    def create_project(self, name: str, description: str = "") -> Dict[str, Any]:
+    async def initialize(self):
+        """Explicit initialization if needed"""
+        await self.sqlite_store.initialize()
+
+    async def create_project(self, name: str, description: str = "") -> Dict[str, Any]:
         """
-        Create a new project with standard structure.
+        Create a new project definition in Memory.
         """
-        safe_name = name.replace(" ", "_").replace("/", "-")
-        project_path = self.projects_dir / safe_name
-        
-        if project_path.exists():
-            return {"success": False, "message": f"Project '{name}' already exists."}
-            
         try:
-            # Create directories
-            project_path.mkdir()
-            (project_path / "context").mkdir()
+            # Create Memory Object for Project
+            memory = Memory(
+                id=str(uuid.uuid4()),
+                timestamp=datetime.datetime.now(),
+                source=MemorySource.MANUAL,
+                project=name, # Self-referential
+                topic="Project Definition",
+                type=MemoryType.PROJECT,
+                tags=["project", "definition"],
+                ultra_brief=f"Project: {name}",
+                executive_summary=[description],
+                detailed_summary=description,
+                raw_content=f"Project: {name}\nDescription: {description}",
+                # Defaults
+                decisions=[],
+                action_items=[],
+                open_questions=[],
+                key_insights=[],
+                people_mentioned=[],
+                projects_mentioned=[],
+                conversation_id=None,
+                parent_memory_id=None,
+                related_memory_ids=[],
+                language="en",
+                sentiment="neutral",
+                importance=5,
+                confidence=1.0,
+                sensitivity=SensitivityLevel.PUBLIC,
+                access_count=0,
+                last_accessed=None,
+                embedding=None,
+                version=1,
+                created_by="MemoryManager",
+                updated_at=None
+            )
             
-            # Create Templates
-            self._create_file(project_path / "overview.md", f"# {name}\n\n## Description\n{description}\n\n## Goals\n- [ ] Define goals\n")
-            self._create_file(project_path / "decisions.md", f"# Decision Log for {name}\n\n| Date | Decision | Context |\n|---|---|---|\n")
-            self._create_file(project_path / "tasks.md", f"# Tasks for {name}\n\n- [ ] Initial setup\n")
+            # Save to SQLite
+            await self.sqlite_store.save_memory(memory)
             
-            # Index Project Description
-            if description:
-                self.vector_store.add_document(
-                    text=f"Project: {name}\nDescription: {description}",
-                    metadata={"type": "project", "name": name, "path": str(project_path)}
-                )
-                
+            # Index in Vector Store
+            self.vector_store.add_document(
+                text=f"Project: {name}\nDescription: {description}",
+                metadata={"type": "project", "name": name, "id": memory.id}
+            )
+            
             # Add to Graph
-            self.graph_store.add_node(name, "Project", {"path": str(project_path)})
+            self.graph_store.add_node(name, "Project", {"description": description})
             
-            return {"success": True, "message": f"Created project '{name}' at {project_path}", "path": str(project_path)}
+            return {"success": True, "message": f"Created project '{name}'", "path": "sqlite://memory"}
             
         except Exception as e:
             logger.error(f"Failed to create project {name}: {e}")
@@ -75,80 +89,84 @@ class MemoryManager:
 
     async def save_thought(self, content: str, project_name: Optional[str] = None) -> Dict[str, Any]:
         """
-        Save a thought/note, optionally linked to a project.
-        Triggers auto-summarization.
+        Save a thought/note to SQLite + Vector + Graph.
         """
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # 1. Auto-Summarize
-        summary_data = await self.auto_summarize(content)
-        
-        # 2. Format Note
-        note_content = f"""
-# Note - {timestamp}
-
-## Content
-{content}
-
-## Summary
-{summary_data.get('summary', 'No summary')}
-
-## Key Points
-{summary_data.get('key_points', '-')}
-
-## Tags
-{', '.join(summary_data.get('tags', []))}
-"""
-        
-        # 3. Determine Location
-        if project_name:
-            # Find project (fuzzy match or exact)
-            target_dir = self._find_project_dir(project_name)
-            if not target_dir:
-                return {"success": False, "message": f"Project '{project_name}' not found."}
+        try:
+            # 1. Auto-Summarize
+            summary_data = await self.auto_summarize(content)
             
-            save_path = target_dir / "context" / f"note_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-            meta_type = "project_note"
-            meta_project = project_name
-        else:
-            save_path = self.inbox_dir / f"thought_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-            meta_type = "thought"
-            meta_project = "inbox"
+            # 2. Create Memory Object
+            memory_id = str(uuid.uuid4())
+            timestamp = datetime.datetime.now()
             
-        # 4. Save File
-        self._create_file(save_path, note_content)
-        
-        # 5. Index in Vector Store
-        self.vector_store.add_document(
-            text=content,
-            metadata={
-                "type": meta_type,
-                "project": meta_project,
-                "path": str(save_path),
-                "summary": summary_data.get('summary', '')
-            }
-        )
-        
-        # 6. Add to Graph
-        note_id = save_path.name
-        self.graph_store.add_node(note_id, "Note", {"path": str(save_path), "summary": summary_data.get('summary', '')})
-        
-        if project_name:
-            self.graph_store.add_edge(note_id, project_name, "PART_OF")
+            memory = Memory(
+                id=memory_id,
+                timestamp=timestamp,
+                source=MemorySource.MANUAL,
+                project=project_name or "Inbox",
+                topic=summary_data.get("summary", "Note"),
+                type=MemoryType.NOTE,
+                tags=summary_data.get("tags", []),
+                ultra_brief=summary_data.get("summary", ""),
+                executive_summary=[], 
+                detailed_summary=summary_data.get("key_points", ""),
+                raw_content=content,
+                # Defaults
+                decisions=[],
+                action_items=[],
+                open_questions=[],
+                key_insights=[],
+                people_mentioned=[],
+                projects_mentioned=[],
+                conversation_id=None,
+                parent_memory_id=None,
+                related_memory_ids=[],
+                language="en",
+                sentiment="neutral",
+                importance=3,
+                confidence=1.0,
+                sensitivity=SensitivityLevel.PRIVATE,
+                access_count=0,
+                last_accessed=None,
+                embedding=None,
+                version=1,
+                created_by="MemoryManager",
+                updated_at=None
+            )
             
-        # Link tags as concepts
-        for tag in summary_data.get('tags', []):
-            tag_id = tag.lower().replace(" ", "_")
-            self.graph_store.add_node(tag_id, "Concept")
-            self.graph_store.add_edge(note_id, tag_id, "MENTIONS")
+            # 3. Save to SQLite
+            await self.sqlite_store.save_memory(memory)
+            
+            # 4. Index in Vector Store
+            self.vector_store.add_document(
+                text=content,
+                metadata={
+                    "type": "note",
+                    "project": project_name or "Inbox",
+                    "id": memory_id,
+                    "summary": summary_data.get('summary', '')
+                }
+            )
+            
+            # 5. Add to Graph
+            self.graph_store.add_node(memory_id, "Note", {"summary": summary_data.get('summary', '')})
             if project_name:
-                self.graph_store.add_edge(project_name, tag_id, "RELATED_TO")
-        
-        return {
-            "success": True, 
-            "message": f"Saved note to {save_path.name}",
-            "summary": summary_data.get('summary')
-        }
+                self.graph_store.add_edge(memory_id, project_name, "PART_OF")
+                
+            for tag in summary_data.get('tags', []):
+                tag_id = tag.lower().replace(" ", "_")
+                self.graph_store.add_node(tag_id, "Concept")
+                self.graph_store.add_edge(memory_id, tag_id, "MENTIONS")
+
+            return {
+                "success": True, 
+                "message": f"Saved note to memory",
+                "summary": summary_data.get('summary')
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to save thought: {e}")
+            return {"success": False, "message": str(e)}
 
     async def auto_summarize(self, content: str) -> Dict[str, Any]:
         """
@@ -164,22 +182,15 @@ Text:
 {content}
 """
         try:
-            # Use Gemini or GPT based on router config (defaulting to generic generate)
-            # We assume generate returns a string, we might need to parse JSON if we want strict structure.
-            # For simplicity, we'll ask for JSON and try to parse, or fallback to text.
+            response = await self.llm_router.generate_with_gemini(prompt)
             
-            response = await self.llm_router.generate_with_gemini(prompt) # Prefer Gemini for analysis
-            
-            # Simple parsing (robustness needed in production)
             import json
             import re
             
-            # Extract JSON block
             match = re.search(r"\{.*\}", response, re.DOTALL)
             if match:
                 return json.loads(match.group(0))
             else:
-                # Fallback if no JSON found
                 return {
                     "summary": response[:100] + "...",
                     "key_points": response,
@@ -196,21 +207,30 @@ Text:
 
     async def search_memory(self, query: str) -> List[Dict[str, Any]]:
         """
-        Search memory using vector store.
+        Search using Vector Store and return formatted results.
         """
-        return self.vector_store.search(query)
+        results = self.vector_store.search(query)
+        return results
 
-    def _create_file(self, path: Path, content: str):
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
-
-    def _find_project_dir(self, name: str) -> Optional[Path]:
-        """Find project directory by name (case-insensitive)"""
-        target = name.lower().replace(" ", "_")
-        for p in self.projects_dir.iterdir():
-            if p.is_dir() and p.name.lower() == target:
-                return p
-        return None
+    async def search(self, query: str, limit: int = 5) -> List[Any]:
+        """
+        Alias for search_memory to match Secretary usage.
+        Returns objects with .content attribute if possible, or dicts.
+        Secretary expects objects with .content attribute?
+        Let's check Secretary usage: `m.content`.
+        Vector store returns dicts.
+        I should wrap the result in a simple object or ensure dict access works.
+        Secretary code: `[f"- {m.content}" for m in recent_memories]`
+        So it expects an object with .content.
+        """
+        results = self.vector_store.search(query, limit=limit)
+        
+        class MemoryResult:
+            def __init__(self, text, meta):
+                self.content = text
+                self.metadata = meta
+                
+        return [MemoryResult(r['text'], r['metadata']) for r in results]
 
 # Singleton
 _memory_manager = None
