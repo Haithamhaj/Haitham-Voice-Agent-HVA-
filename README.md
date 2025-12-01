@@ -134,6 +134,19 @@ The memory system is unified to act as a single, interconnected "brain":
 - **Smart Organizer**: Tools to automatically clean the Desktop and organize the Downloads folder.
 - **Workspace Manager**: Automatically creates and manages project folder structures.
 
+### 🤖 ترقيات الذكاء (v1.1 - v1.4) | Intelligence Upgrades
+<div dir="rtl">
+
+- **Smart Feedback Agent**: نظام "نكز" ذكي في الموجز الصباحي يذكرك بالمشاريع المتوقفة باحترام وتدرج.
+- **Clarification Agent**: لا يفشل عند الغموض! إذا قلت "ذكرني"، سيسألك "بماذا؟" ويسمع إجابتك ليكمل الأمر.
+- **Idea Agent**: حول أفكارك الخام إلى مشاريع منظمة. قل "عندي فكرة..." وسيقوم بإنشاء خطة مشروع كاملة (باستخدام **GPT-4o Mini** للسرعة والتكلفة).
+
+</div>
+
+- **Smart Feedback Agent**: Intelligent "nudge" system in morning briefing for stale projects.
+- **Clarification Agent**: Handles ambiguity gracefully. If you say "Remind me", it asks "About what?" and listens for your answer.
+- **Idea Agent**: Turns raw ideas into structured projects. Say "I have an idea..." and it creates a full project spec (using **GPT-4o Mini** for speed/cost).
+
 ### 📱 تطبيق شريط القوائم وواجهة المستخدم | Menu Bar App & GUI
 
 <div dir="rtl">
@@ -350,6 +363,8 @@ Click the icon in your menu bar or use the global hotkey `Cmd+Shift+H` to start 
 *   **"Search Drive for the contract file"** (Uses Drive Integration).
 *   **"Clean up my downloads folder"** (Uses the Smart Organizer to categorize files).
 *   **"Run the command git status"** (Uses the Secure Terminal after requesting confirmation).
+*   **"Remind me"** -> System: "About what?" -> **"To call Ahmed"** (Clarification Agent).
+*   **"I have an idea for a new cooking app"** (Idea Agent creates a structured project).
 
 ---
 
