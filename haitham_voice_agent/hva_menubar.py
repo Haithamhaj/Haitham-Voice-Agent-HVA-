@@ -26,8 +26,7 @@ from haitham_voice_agent.tools.notifications.manager import NotificationManager
 from haitham_voice_agent.tools.system_tools import SystemTools
 import time
 
-print(f"🐍 Python Executable: {sys.executable}")
-print(f"🐍 Python Path: {sys.path}")
+
 
 class HVAMenuBarApp(rumps.App):
     def __init__(self):
@@ -536,4 +535,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        error_msg = f"CRITICAL STARTUP ERROR: {e}\n{traceback.format_exc()}"
+        print(error_msg)
+        with open("/tmp/hva_startup_crash.log", "w") as f:
+            f.write(error_msg)
+        raise

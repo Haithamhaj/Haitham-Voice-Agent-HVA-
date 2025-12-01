@@ -81,12 +81,21 @@ class SystemTools:
         Send a macOS notification.
         """
         try:
-            # Escape quotes
+            # Escape double quotes for the AppleScript string
             title = title.replace('"', '\\"')
             message = message.replace('"', '\\"')
             
-            cmd = f'osascript -e \'display notification "{message}" with title "{title}" sound name "{sound}"\''
-            subprocess.run(cmd, shell=True, check=True)
+            # Use a safer way to execute osascript by passing arguments properly or using a heredoc
+            # But simpler fix for single quotes inside the shell command:
+            # We are wrapping the osascript command in single quotes: 'display notification ...'
+            # So we must escape single quotes in the content as '\''
+            
+            # However, subprocess.run with shell=True is tricky.
+            # Let's use list format (shell=False) which is safer and handles arguments better.
+            
+            script = f'display notification "{message}" with title "{title}" sound name "{sound}"'
+            
+            subprocess.run(["osascript", "-e", script], check=True)
             return {"success": True, "message": "Notification sent"}
         except Exception as e:
             logger.error(f"Failed to send notification: {e}")
@@ -168,3 +177,51 @@ class SystemTools:
         except Exception as e:
             logger.error(f"Failed to show files: {e}")
             return {"success": False, "message": str(e)}
+
+    async def meeting_mode(self) -> Dict[str, Any]:
+        """
+        Enable Meeting Mode: Mute volume, set DND (simulated).
+        """
+        try:
+            # Mute volume
+            await self.mute_volume()
+            
+            # Notify (this might be silent if DND is on, but good for confirmation)
+            await self.notify("Meeting Mode", "Volume muted. Focus on your meeting.")
+            
+            return {"success": True, "message": "Meeting Mode enabled (Volume Muted)"}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    async def work_mode(self) -> Dict[str, Any]:
+        """
+        Enable Work Mode: Set volume to low, maybe open work apps (optional).
+        """
+        try:
+            await self.set_volume(20)
+            await self.notify("Work Mode", "Let's get productive.")
+            return {"success": True, "message": "Work Mode enabled"}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    async def chill_mode(self) -> Dict[str, Any]:
+        """
+        Enable Chill Mode: Set volume to medium, maybe open music.
+        """
+        try:
+            await self.set_volume(50)
+            await self.unmute_volume()
+            await self.notify("Chill Mode", "Relaxing...")
+            return {"success": True, "message": "Chill Mode enabled"}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+
+    async def morning_briefing(self) -> Dict[str, Any]:
+        """
+        Trigger morning briefing (handled by Secretary, but this is the system hook).
+        """
+        # This is usually handled by the dispatcher calling the Secretary tool,
+        # but if the orchestrator maps it to 'system.morning_briefing', we need a stub here
+        # or better, the dispatcher should map 'morning_briefing' intent to Secretary.
+        # However, for now, let's return a success message that triggers the UI/TTS.
+        return {"success": True, "message": "Starting Morning Briefing...", "action": "trigger_briefing"}
