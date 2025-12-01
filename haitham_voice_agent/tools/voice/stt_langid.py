@@ -3,7 +3,7 @@ import io
 import soundfile as sf
 import numpy as np
 from haitham_voice_agent.config import Config
-from haitham_voice_agent.tools.voice.stt import WHISPER_MODELS, init_whisper_models
+from haitham_voice_agent.tools.voice.models import WHISPER_MODELS, init_whisper_models
 
 logger = logging.getLogger(__name__)
 

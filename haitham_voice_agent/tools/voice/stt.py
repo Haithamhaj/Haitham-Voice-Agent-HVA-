@@ -17,6 +17,7 @@ import re
 from typing import Optional, Tuple
 
 from haitham_voice_agent.config import Config
+from haitham_voice_agent.tools.voice.models import init_whisper_models
 
 # Import the specialized engines (now located in tools/voice/)
 from haitham_voice_agent.tools.voice.stt_langid import detect_language_whisper
@@ -210,13 +211,4 @@ class STTHandler:
                 
             return None
 
-# For backward compatibility if needed, or just use the class
-def init_whisper_models():
-    """
-    Initialize Whisper models.
-    Now delegated to the specific modules if they need it, 
-    but we can keep a global init here if main calls it.
-    """
-    # The new modules (stt_whisper_en, stt_whisper_ar) handle their own model loading lazily or globally.
-    # But to prevent latency on first request, we can trigger them here.
-    pass 
+ 

@@ -22,7 +22,7 @@ def transcribe_arabic_whisper(audio_bytes: bytes, duration_seconds: float) -> Tu
     """
     try:
         from faster_whisper import WhisperModel
-        from haitham_voice_agent.tools.voice.stt import WHISPER_MODELS, init_whisper_models
+        from haitham_voice_agent.tools.voice.models import WHISPER_MODELS, init_whisper_models
         import io
         import tempfile
         

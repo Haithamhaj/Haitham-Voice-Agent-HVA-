@@ -37,7 +37,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-from haitham_voice_agent.tools.voice.stt import STTHandler, init_whisper_models
+from haitham_voice_agent.tools.voice.stt import STTHandler
+from haitham_voice_agent.tools.voice.models import init_whisper_models
 from haitham_voice_agent.ollama_orchestrator import get_orchestrator
 from haitham_voice_agent.intent_router import route_command
 from haitham_voice_agent.tools.arabic_normalizer import normalize_arabic_text
