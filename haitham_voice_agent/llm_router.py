@@ -144,7 +144,8 @@ class LLMRouter:
         prompt: str,
         system_instruction: Optional[str] = None,
         temperature: float = 0.7,
-        response_format: Optional[str] = None
+        response_format: Optional[str] = None,
+        logical_model: str = "logical.mini"
     ) -> str:
         """
         Generate response using GPT
@@ -154,11 +155,14 @@ class LLMRouter:
             system_instruction: System instruction (optional)
             temperature: Sampling temperature
             response_format: "json_object" for JSON responses
+            logical_model: Logical model name (default: logical.mini -> gpt-4o)
             
         Returns:
             str: Generated response
         """
-        logger.info("Generating with GPT...")
+        # Resolve model
+        model_name = Config.resolve_model(logical_model)
+        logger.info(f"Generating with GPT ({logical_model} -> {model_name})...")
         
         try:
             messages = []
@@ -170,7 +174,7 @@ class LLMRouter:
             
             # Prepare kwargs
             kwargs = {
-                "model": self.gpt_model,
+                "model": model_name,
                 "messages": messages,
                 "temperature": temperature
             }

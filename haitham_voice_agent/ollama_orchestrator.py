@@ -87,6 +87,31 @@ Response:
 {"type": "delegate", "delegate_to": "gemini", "reason": "document analysis", "keywords": ["pdf"]}
 
 ═══════════════════════════════════════════════════════════
+RULE 5: NEEDS CLARIFICATION (type: needs_clarification)
+═══════════════════════════════════════════════════════════
+When request is ambiguous or missing critical details:
+- "Remind me" (Missing: what, when)
+- "Add task" (Missing: title)
+- "Send email" (Missing: to whom, subject)
+- "ذكرني" (Missing: بماذا)
+
+Response:
+{"type": "needs_clarification", "question": "بماذا تريد أن أذكرك؟", "missing_slots": ["content"]}
+{"type": "needs_clarification", "question": "What is the task title?", "missing_slots": ["title"]}
+
+═══════════════════════════════════════════════════════════
+RULE 6: NEW IDEA (type: new_idea)
+═══════════════════════════════════════════════════════════
+When request indicates a new project idea or concept:
+- "I have an idea for..."
+- "فكرة مشروع..."
+- "عندي فكرة..."
+- "New project idea..."
+
+Response:
+{"type": "new_idea", "content": "The full idea text"}
+
+═══════════════════════════════════════════════════════════
 EXAMPLES
 ═══════════════════════════════════════════════════════════
 

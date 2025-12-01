@@ -213,6 +213,102 @@ Text:
                 "tags": ["error"]
             }
 
+    async def crystallize_idea(self, content: str) -> Dict[str, Any]:
+        """
+        Transform raw idea text into a structured Project Memory using LLM.
+        """
+        prompt = f"""
+You are an expert Project Architect.
+Transform this raw idea into a structured project specification JSON.
+
+Idea: "{content}"
+
+Output JSON format:
+{{
+    "title": "Short, catchy project title",
+    "executive_summary": "One sentence pitch",
+    "objectives": ["List of 3 clear objectives"],
+    "key_features": ["List of key features"],
+    "first_steps": ["List of immediate next steps"],
+    "tags": ["tag1", "tag2"]
+}}
+"""
+        try:
+            # Use GPT-4o-mini (logical.nano) for cost-effective structuring
+            response = await self.llm_router.generate_with_gpt(
+                prompt, 
+                temperature=0.2,
+                response_format="json_object",
+                logical_model="logical.nano"
+            )
+            
+            import json
+            if isinstance(response, str):
+                data = json.loads(response)
+            else:
+                data = response
+                
+            # Create Project Memory
+            memory_id = str(uuid.uuid4())
+            timestamp = datetime.datetime.now()
+            
+            memory = Memory(
+                id=memory_id,
+                timestamp=timestamp,
+                source=MemorySource.MANUAL,
+                project=data.get("title", "New Idea"),
+                topic="Project Definition",
+                type=MemoryType.PROJECT,
+                tags=data.get("tags", ["idea"]),
+                ultra_brief=data.get("executive_summary", ""),
+                executive_summary=data.get("objectives", []),
+                detailed_summary=f"Features: {', '.join(data.get('key_features', []))}",
+                raw_content=content,
+                structured_data=data, # Save full structure
+                status="active",
+                nag_count=0,
+                # Defaults
+                decisions=[],
+                action_items=data.get("first_steps", []),
+                open_questions=[],
+                key_insights=[],
+                people_mentioned=[],
+                projects_mentioned=[],
+                conversation_id=None,
+                parent_memory_id=None,
+                related_memory_ids=[],
+                language="en",
+                sentiment="positive",
+                importance=8, # Ideas are important!
+                confidence=1.0,
+                sensitivity=SensitivityLevel.PRIVATE,
+                access_count=0,
+                last_accessed=None,
+                embedding=None,
+                version=1,
+                created_by="IdeaAgent",
+                updated_at=timestamp
+            )
+            
+            # Save to SQLite
+            await self.sqlite_store.save_memory(memory)
+            
+            # Index in Vector Store
+            self.vector_store.add_document(
+                text=f"Project: {memory.project}\nPitch: {memory.ultra_brief}\nObjectives: {memory.executive_summary}",
+                metadata={"type": "project", "name": memory.project, "id": memory.id}
+            )
+            
+            return {
+                "success": True,
+                "message": f"Crystallized idea into project: {memory.project}",
+                "data": data
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to crystallize idea: {e}")
+            return {"success": False, "message": str(e)}
+
     async def search_memory(self, query: str) -> List[Dict[str, Any]]:
         """
         Search using Vector Store and return formatted results.

@@ -153,8 +153,8 @@ class HVA:
         # 1. Intent Router (Reflex Layer - Fastest)
         # Handles critical commands like "stop", "mute", "volume" instantly
         intent_result = route_command(text)
-        if intent_result:
-            logger.info(f"Intent Router caught command: {intent_result['intent']}")
+        if intent_result and intent_result.get("confidence", 0) > 0.7: # Ensure high confidence
+            logger.info(f"Intent Router caught command: {intent_result['action']}")
             # Execute directly
             await self.execute_plan(intent_result)
             return
@@ -180,6 +180,83 @@ class HVA:
                 "confirmation_needed": False
             }
             await self.execute_plan(plan)
+            return
+
+        elif classification.get("type") == "needs_clarification":
+            # --- Clarification Loop ---
+            question = classification.get("question", "Could you clarify?")
+            logger.info(f"Clarification needed: {question}")
+            
+            # 1. Speak Question
+            self.speak(question)
+            
+            # 2. Listen for Answer (Open Mic)
+            logger.info("Listening for clarification...")
+            capture = self.stt.capture_audio()
+            
+            if capture:
+                audio_bytes, duration = capture
+                answer_text = self.stt.transcribe_command(audio_bytes, duration)
+                
+                if answer_text:
+                    logger.info(f"User Answer: {answer_text}")
+                    
+                    # 3. Merge Context
+                    # Simple concatenation: "Remind me" + " to call Ahmed"
+                    merged_text = f"{text} {answer_text}"
+                    logger.info(f"Merged Context: {merged_text}")
+                    
+                    # 4. Re-process
+                    # Recursive call with merged text
+                    # We need to ensure we don't loop infinitely. 
+                    # For now, just re-route the merged text.
+                    # Since process_command_mode captures audio, we can't call it directly.
+                    # We should call a method that takes text input.
+                    # Let's refactor slightly or just handle the logic here.
+                    
+                    # Re-classify the merged text
+                    new_classification = await orchestrator.classify_request(merged_text)
+                    
+                    # Handle the new classification (copy-paste logic or refactor)
+                    # Ideally, we should have a `process_text_request` method that handles classification.
+                    # For now, let's just recurse into the logic below by updating `text` and `classification`
+                    # But we can't easily jump back.
+                    # Let's call a helper method `handle_classified_request`?
+                    # Or just recursively call a new method `process_text_input(text)`
+                    
+                    # Let's call process_text_command, but that skips Ollama!
+                    # process_text_command does: Route (Deterministic) -> Plan (Ollama -> GPT)
+                    # So calling process_text_command(merged_text) IS the right thing to do!
+                    # It will re-run Ollama inside `plan_command`.
+                    
+                    await self.process_text_command(merged_text)
+                    return
+            
+            self.speak("لم أسمع إجابتك." if self.language == "ar" else "I didn't hear your answer.")
+            return
+            
+        elif classification.get("type") == "new_idea":
+            # --- Idea Agent ---
+            idea_content = classification.get("content", text)
+            logger.info(f"New Idea detected: {idea_content}")
+            
+            self.speak("فكرة ممتازة! جاري تحليلها وهيكلتها..." if self.language == "ar" else "Great idea! Structuring it now...")
+            
+            # Call Memory Manager
+            memory_manager = get_memory_manager()
+            result = await memory_manager.crystallize_idea(idea_content)
+            
+            if result["success"]:
+                data = result["data"]
+                title = data.get("title", "Project")
+                objectives_count = len(data.get("objectives", []))
+                
+                msg_ar = f"تم إنشاء مشروع جديد باسم {title}. حددت له {objectives_count} أهداف."
+                msg_en = f"Created new project: {title}. Defined {objectives_count} objectives."
+                
+                self.speak(msg_ar if self.language == "ar" else msg_en)
+            else:
+                self.speak("حدث خطأ أثناء حفظ الفكرة." if self.language == "ar" else "Error saving idea.")
             return
             
         # 3. LLM Router (Cloud Intelligence Layer)
@@ -673,39 +750,39 @@ Output format: JSON
 
 مثال 1:
 المستخدم: "افتح مجلد جديد داخل مجلد هيثم باسم المهام"
-{
+{{
     "intent": "إنشاء مجلد جديد باسم المهام داخل المجلد الرئيسي",
     "tool": "files",
     "action": "create_folder",
-    "parameters": {
+    "parameters": {{
         "directory": "هيثم/المهام"
-    },
+    }},
     "confirmation_needed": false
-}
+}}
 
 مثال 2:
 المستخدم: "افتح ملف جديد باسم العمل داخل مجلد هيثم"
-{
+{{
     "intent": "إنشاء ملف العمل داخل مجلد هيثم",
     "tool": "files",
     "action": "create_folder",
-    "parameters": {
+    "parameters": {{
         "directory": "هيثم/العمل"
-    },
+    }},
     "confirmation_needed": false
-}
+}}
 
 مثال 3:
 المستخدم: "أنشئ مجلداً جديداً باسم المشاريع في التنزيلات"
-{
+{{
     "intent": "إنشاء مجلد المشاريع في Downloads",
     "tool": "files",
     "action": "create_folder",
-    "parameters": {
+    "parameters": {{
         "directory": "~/Downloads/المشاريع"
-    },
+    }},
     "confirmation_needed": false
-}
+}}
 
 مثال 4:
 المستخدم: "شغّل متصفح كروم"
