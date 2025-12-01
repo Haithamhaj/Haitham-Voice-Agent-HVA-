@@ -45,6 +45,7 @@ A voice-operated automation agent for macOS with hybrid LLM routing, full system
 - ✅ **Unified Memory System**: ذاكرة موحدة تعتمد على SQLite و Vector Store (لا يوجد انقسام في الذاكرة)
 - ✅ **Full Gmail Integration**: قراءة، تلخيص، وإنشاء مسودات البريد الإلكتروني
 - ✅ **Safety First**: نظام أمان شامل يمنع الإجراءات المدمرة
+- ✅ **Robust Architecture**: نظام غير محجوب (Non-blocking I/O) مع معالجة ذكية للأخطاء
 
 ---
 
@@ -89,7 +90,7 @@ We use the "Golden Rule" strategy for best accuracy:
 تم توحيد نظام الذاكرة بالكامل ليعمل كـ "عقل واحد":
 *   **SQLite Store**: تخزين منظم للملاحظات، المشاريع، والمهام.
 *   **Vector Store**: بحث دلالي (Semantic Search) للعثور على المعلومات بالمعنى.
-*   **Graph Store**: ربط العلاقات بين الأفكار والمشاريع.
+*   **Transactional Logic**: ضمان نزاهة البيانات (Data Integrity) عبر التراجع التلقائي عند الخطأ.
 *   **تكامل كامل**: السكرتير (Secretary) والمستشار (Advisor) يقرأون ويكتبون في نفس قاعدة البيانات.
 
 </div>
@@ -97,8 +98,22 @@ We use the "Golden Rule" strategy for best accuracy:
 The memory system is fully unified to act as a "Single Brain":
 *   **SQLite Store**: Structured storage for notes, projects, and tasks.
 *   **Vector Store**: Semantic search to find information by meaning.
-*   **Graph Store**: Linking relationships between ideas and projects.
+*   **Transactional Logic**: Ensures data integrity via automatic rollback on failure.
 *   **Full Integration**: Secretary and Advisor read/write to the same database.
+
+### ⚡️ أداء عالي واستقرار | High Performance & Stability
+
+<div dir="rtl">
+
+- **Non-blocking I/O**: النظام لا يتجمد أثناء التسجيل ويستجيب للمقاطعة (Ctrl+C).
+- **Smart Fallback**: الأوامر غير المفهومة أو القصيرة تُحفظ تلقائياً كملاحظات بدلاً من رفضها.
+- **Thread-Safe**: تسجيل ومعالجة متزامنة دون تضارب.
+
+</div>
+
+- **Non-blocking I/O**: System remains responsive during recording and handles interrupts gracefully.
+- **Smart Fallback**: Unrecognized or short commands are automatically saved as notes.
+- **Thread-Safe**: Concurrent recording and processing without conflicts.
 
 ### 📱 تطبيق شريط القوائم | Menu Bar App
 
@@ -160,7 +175,7 @@ haitham_voice_agent/
 ├── 📱 hva_menubar.py             # تطبيق شريط القوائم الرئيسي
 ├── 🖥️ gui_process.py             # عملية الواجهة الرسومية
 ├── ⚙️ config.py                  # التكوين المركزي
-├── main.py                      # نقطة الدخول (CLI)
+├── main.py                      # نقطة الدخول (CLI - Non-blocking)
 │
 ├── 🧠 tools/system_awareness/    # وحدة الوعي بالنظام
 │   ├── system_profiler.py       # Layer 1: Hardware & Apps
@@ -182,7 +197,7 @@ haitham_voice_agent/
 │   └── advisor.py               # (Memory Integrated - SQLite)
 │
 ├── 💾 memory/                    # نظام الذاكرة الموحد
-│   ├── manager.py               # Unified Wrapper
+│   ├── manager.py               # Unified Wrapper (Transactional)
 │   └── ...
 │
 ├── ☁️ ollama_orchestrator.py     # منسق الذكاء الاصطناعي المحلي
