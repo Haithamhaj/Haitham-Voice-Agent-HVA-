@@ -27,21 +27,19 @@ const ChatView = () => {
         setIsProcessing(true);
 
         try {
-            // Send to backend (Assuming a chat endpoint exists or using voice/text endpoint)
-            // For now, we'll simulate a response or use a placeholder endpoint if available
-            // In a real scenario, we'd POST to /chat or similar
+            const response = await api.sendChat(input);
 
-            // Simulating response for UI demo
-            setTimeout(() => {
-                setMessages(prev => [...prev, {
-                    role: 'assistant',
-                    content: 'عذراً، ميزة المحادثة النصية قيد التطوير حالياً في الواجهة الخلفية. يرجى استخدام الأوامر الصوتية.'
-                }]);
-                setIsProcessing(false);
-            }, 1000);
-
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: response.response
+            }]);
         } catch (error) {
             console.error("Chat error:", error);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'عذراً، حدث خطأ في الاتصال.'
+            }]);
+        } finally {
             setIsProcessing(false);
         }
     };
@@ -65,8 +63,8 @@ const ChatView = () => {
                                 {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
                             </div>
                             <div className={`max-w-[80%] p-4 rounded-2xl ${msg.role === 'user'
-                                    ? 'bg-hva-accent/10 text-hva-cream rounded-tr-none'
-                                    : 'bg-hva-primary/50 text-hva-cream rounded-tl-none'
+                                ? 'bg-hva-accent/10 text-hva-cream rounded-tr-none'
+                                : 'bg-hva-primary/50 text-hva-cream rounded-tl-none'
                                 }`}>
                                 <p className="leading-relaxed">{msg.content}</p>
                             </div>

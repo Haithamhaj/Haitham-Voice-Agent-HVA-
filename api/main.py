@@ -47,10 +47,11 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
 
-from api.routes import voice, memory, gmail, calendar, tasks, system
+from api.routes import voice, memory, gmail, calendar, tasks, system, chat
 
 # Include routers
 app.include_router(voice.router)
+app.include_router(chat.router)
 app.include_router(memory.router)
 app.include_router(gmail.router)
 app.include_router(calendar.router)

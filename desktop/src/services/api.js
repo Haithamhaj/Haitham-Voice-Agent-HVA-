@@ -13,4 +13,11 @@ export const api = {
     // Memory
     fetchMemoryStats: () => fetch(`${API_BASE_URL}/memory/stats`).then(res => res.json()),
     searchMemory: (query) => fetch(`${API_BASE_URL}/memory/search?query=${encodeURIComponent(query)}`).then(res => res.json()),
+
+    // Chat
+    sendChat: (message) => fetch(`${API_BASE_URL}/chat/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+    }).then(res => res.json()),
 };

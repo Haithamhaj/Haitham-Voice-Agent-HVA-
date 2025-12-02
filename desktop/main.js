@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 let mainWindow;
 let apiProcess;
 
-function startApi() {
+async function startApi() {
     if (process.env.NODE_ENV === 'development') {
         console.log('Development mode: API should be running separately.');
         return;
@@ -18,8 +18,13 @@ function startApi() {
     const apiPath = path.join(process.resourcesPath, 'hva_backend');
     console.log('Starting API from:', apiPath);
 
+    const logFile = path.join('/tmp', 'hva_backend.log');
+    const fs = await import('fs');
+    const out = fs.openSync(logFile, 'a');
+    const err = fs.openSync(logFile, 'a');
+
     apiProcess = spawn(apiPath, [], {
-        stdio: 'inherit'
+        stdio: ['ignore', out, err]
     });
 
     apiProcess.on('error', (err) => {
