@@ -20,4 +20,7 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message })
     }).then(res => res.json()),
+
+    // System
+    fetchSystemLogs: () => fetch(`${API_BASE_URL}/system/logs`).then(res => res.json()),
 };

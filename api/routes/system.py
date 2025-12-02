@@ -20,3 +20,17 @@ async def get_system_status():
             return {"status": "online", "message": "System tool active"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/logs")
+async def get_system_logs(lines: int = 100):
+    """Get backend logs"""
+    try:
+        log_file = "/tmp/hva_backend.log"
+        with open(log_file, "r") as f:
+            # Read all lines and return last N
+            all_lines = f.readlines()
+            return all_lines[-lines:]
+    except FileNotFoundError:
+        return ["Log file not found."]
+    except Exception as e:
+        return [f"Error reading logs: {str(e)}"]

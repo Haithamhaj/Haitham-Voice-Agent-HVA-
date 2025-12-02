@@ -9,7 +9,9 @@ import TasksView from './pages/TasksView';
 import SettingsView from './pages/SettingsView';
 import ChatView from './pages/ChatView';
 import MemoryView from './pages/MemoryView';
+import LogsView from './pages/LogsView';
 import VoiceOverlay from './components/voice/VoiceOverlay';
+import Toast from './components/common/Toast';
 import { useWebSocket } from './hooks/useWebSocket';
 import { api } from './services/api';
 
@@ -52,11 +54,13 @@ function App() {
               <Route path="/calendar" element={<CalendarView />} />
               <Route path="/tasks" element={<TasksView />} />
               <Route path="/settings" element={<SettingsView />} />
+              <Route path="/logs" element={<LogsView />} />
             </Routes>
           </main>
         </div>
 
         {isListening && <VoiceOverlay onClose={toggleListening} />}
+        <Toast />
       </div>
     </HashRouter>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Brain, Mail, Calendar, CheckSquare, Settings, Mic, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Brain, Mail, Calendar, CheckSquare, Settings, Mic, MessageSquare, Activity } from 'lucide-react';
 import clsx from 'clsx';
 
 const Sidebar = ({ isListening, wsConnected, toggleListening }) => {
@@ -11,6 +11,7 @@ const Sidebar = ({ isListening, wsConnected, toggleListening }) => {
         { path: '/gmail', icon: Mail, label: 'البريد' },
         { path: '/calendar', icon: Calendar, label: 'التقويم' },
         { path: '/tasks', icon: CheckSquare, label: 'المهام' },
+        { path: '/logs', icon: Activity, label: 'السجلات' },
         { path: '/settings', icon: Settings, label: 'الإعدادات' },
     ];
 

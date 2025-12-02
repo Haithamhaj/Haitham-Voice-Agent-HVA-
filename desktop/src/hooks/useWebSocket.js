@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { logger } from '../services/logger';
 
 export const useWebSocket = () => {
     const [isListening, setIsListening] = useState(false);
@@ -9,13 +10,13 @@ export const useWebSocket = () => {
         const connectWs = () => {
             if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-            console.log('Attempting to connect to WebSocket...');
+            logger.info('Attempting to connect to WebSocket...');
             const ws = new WebSocket('ws://127.0.0.1:8765/ws');
             wsRef.current = ws;
 
             ws.onopen = () => {
                 setWsConnected(true);
-                console.log('WebSocket Connected');
+                logger.info('WebSocket Connected');
             };
 
             ws.onmessage = (event) => {
@@ -23,14 +24,15 @@ export const useWebSocket = () => {
                     const data = JSON.parse(event.data);
                     if (data.type === 'status') {
                         setIsListening(data.listening);
+                        logger.info(`Voice status updated: ${data.listening}`);
                     }
                 } catch (e) {
-                    console.error("Failed to parse WS message", e);
+                    logger.error("Failed to parse WS message", e.message);
                 }
             };
 
             ws.onclose = (event) => {
-                console.log('WebSocket Disconnected', event.code, event.reason);
+                logger.warn(`WebSocket Disconnected: Code ${event.code}`, event.reason);
                 setWsConnected(false);
                 wsRef.current = null;
                 // Reconnect after 3 seconds
@@ -38,7 +40,7 @@ export const useWebSocket = () => {
             };
 
             ws.onerror = (error) => {
-                console.error('WebSocket Error:', error);
+                logger.error('WebSocket Error', error.message || 'Unknown error');
                 ws.close();
             };
         };
