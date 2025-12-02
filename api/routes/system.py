@@ -43,8 +43,9 @@ async def save_report(report: dict):
         import json
         from datetime import datetime
 
-        # Create reports directory if it doesn't exist
-        reports_dir = "debug_reports"
+        # Create reports directory on Desktop
+        desktop_path = os.path.expanduser("~/Desktop")
+        reports_dir = os.path.join(desktop_path, "hva_debug_reports")
         if not os.path.exists(reports_dir):
             os.makedirs(reports_dir)
 

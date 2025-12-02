@@ -1,11 +1,14 @@
-# -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_data_files
 
+datas = [('haitham_voice_agent', 'haitham_voice_agent')]
+datas += collect_data_files('rfc3987_syntax')
+datas += collect_data_files('jsonschema')
 
 a = Analysis(
     ['api/main.py'],
     pathex=['.'],
     binaries=[],
-    datas=[('haitham_voice_agent', 'haitham_voice_agent')],
+    datas=datas,
     hiddenimports=['uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto', 'uvicorn.protocols', 'uvicorn.protocols.http', 'uvicorn.protocols.http.auto', 'uvicorn.protocols.websockets', 'uvicorn.protocols.websockets.auto', 'uvicorn.lifespan', 'uvicorn.lifespan.on', 'engineio.async_drivers.aiohttp'],
     hookspath=[],
     hooksconfig={},

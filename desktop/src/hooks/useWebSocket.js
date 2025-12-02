@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { logger } from '../services/logger';
+import { logger } from '../developer-toolkit/logger';
 
 export const useWebSocket = () => {
     const [isListening, setIsListening] = useState(false);
