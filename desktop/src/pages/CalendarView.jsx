@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
+import { api } from '../services/api';
 
 const CalendarView = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://127.0.0.1:8765/calendar/today')
-            .then(res => res.json())
+        api.fetchEvents()
             .then(data => {
                 const list = Array.isArray(data) ? data : (data.events || []);
                 setEvents(list);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, Clock, Sun } from 'lucide-react';
 
+import { api } from '../services/api';
+
 const Dashboard = () => {
     const [stats, setStats] = useState({
         tasks: 0,
@@ -11,15 +13,11 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const [tasksRes, gmailRes, calendarRes] = await Promise.all([
-                    fetch('http://127.0.0.1:8765/tasks/'),
-                    fetch('http://127.0.0.1:8765/gmail/unread'),
-                    fetch('http://127.0.0.1:8765/calendar/today')
+                const [tasksData, gmailData, calendarData] = await Promise.all([
+                    api.fetchTasks(),
+                    api.fetchEmails(),
+                    api.fetchEvents()
                 ]);
-
-                const tasksData = await tasksRes.json();
-                const gmailData = await gmailRes.json();
-                const calendarData = await calendarRes.json();
 
                 setStats({
                     tasks: Array.isArray(tasksData) ? tasksData.length : (tasksData.tasks ? tasksData.tasks.length : 0),

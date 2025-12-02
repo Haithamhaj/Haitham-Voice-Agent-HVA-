@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Search, Database, Network } from 'lucide-react';
+import { api } from '../services/api';
 
 const MemoryView = () => {
     const [stats, setStats] = useState(null);
@@ -7,8 +8,7 @@ const MemoryView = () => {
     const [searchResults, setSearchResults] = useState([]);
 
     useEffect(() => {
-        fetch('http://127.0.0.1:8765/memory/stats')
-            .then(res => res.json())
+        api.fetchMemoryStats()
             .then(data => setStats(data))
             .catch(err => console.error(err));
     }, []);
@@ -17,8 +17,7 @@ const MemoryView = () => {
         e.preventDefault();
         if (!searchQuery.trim()) return;
 
-        fetch(`http://127.0.0.1:8765/memory/search?query=${encodeURIComponent(searchQuery)}`)
-            .then(res => res.json())
+        api.searchMemory(searchQuery)
             .then(data => setSearchResults(data))
             .catch(err => console.error(err));
     };

@@ -1,71 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import TitleBar from './components/TitleBar';
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import MemoryView from './components/MemoryView';
-import GmailView from './components/GmailView';
-import CalendarView from './components/CalendarView';
-import TasksView from './components/TasksView';
-import SettingsView from './components/SettingsView';
-import ChatView from './components/ChatView';
-import VoiceOverlay from './components/VoiceOverlay';
+import TitleBar from './components/layout/TitleBar';
+import Sidebar from './components/layout/Sidebar';
+import Dashboard from './pages/Dashboard';
+import GmailView from './pages/GmailView';
+import CalendarView from './pages/CalendarView';
+import TasksView from './pages/TasksView';
+import SettingsView from './pages/SettingsView';
+import ChatView from './pages/ChatView';
+import MemoryView from './pages/MemoryView';
+import VoiceOverlay from './components/voice/VoiceOverlay';
+import { useWebSocket } from './hooks/useWebSocket';
+import { api } from './services/api';
 
 function App() {
-  const [isListening, setIsListening] = useState(false);
-  const [wsConnected, setWsConnected] = useState(false);
-
-  const wsRef = useRef(null);
-
-  // WebSocket Connection
-  useEffect(() => {
-    const connectWs = () => {
-      if (wsRef.current?.readyState === WebSocket.OPEN) return;
-
-      console.log('Attempting to connect to WebSocket...');
-      const ws = new WebSocket('ws://127.0.0.1:8765/ws');
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        setWsConnected(true);
-        console.log('WebSocket Connected');
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'status') {
-            setIsListening(data.listening);
-          }
-        } catch (e) {
-          console.error("Failed to parse WS message", e);
-        }
-      };
-
-      ws.onclose = (event) => {
-        console.log('WebSocket Disconnected', event.code, event.reason);
-        setWsConnected(false);
-        wsRef.current = null;
-        // Reconnect after 3 seconds
-        setTimeout(connectWs, 3000);
-      };
-
-      ws.onerror = (error) => {
-        console.error('WebSocket Error:', error);
-        ws.close();
-      };
-    };
-
-    connectWs();
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.onclose = null; // Prevent reconnect on cleanup
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-    };
-  }, []);
+  const { isListening, wsConnected, setIsListening } = useWebSocket();
 
   // Listen for keyboard shortcut from Electron
   useEffect(() => {
@@ -77,9 +26,9 @@ function App() {
   const toggleListening = async () => {
     try {
       if (isListening) {
-        await fetch('http://127.0.0.1:8765/voice/stop', { method: 'POST' });
+        await api.stopVoice();
       } else {
-        await fetch('http://127.0.0.1:8765/voice/start', { method: 'POST' });
+        await api.startVoice();
       }
     } catch (e) {
       console.error("Failed to toggle voice", e);
@@ -88,7 +37,7 @@ function App() {
 
   return (
     <HashRouter>
-      <div className="h-screen bg-hva-deep text-hva-cream overflow-hidden rounded-2xl flex flex-col" dir="rtl">
+      <div className="flex flex-col h-screen bg-hva-primary text-hva-cream overflow-hidden" dir="rtl">
         <TitleBar />
 
         <div className="flex flex-1 overflow-hidden">

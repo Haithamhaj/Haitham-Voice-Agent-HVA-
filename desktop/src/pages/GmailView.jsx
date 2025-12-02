@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, RefreshCw, Star } from 'lucide-react';
+import { Mail, RefreshCw, ExternalLink } from 'lucide-react';
+import { api } from '../services/api';
 
 const GmailView = () => {
     const [emails, setEmails] = useState([]);
@@ -7,8 +8,7 @@ const GmailView = () => {
 
     const fetchEmails = () => {
         setLoading(true);
-        fetch('http://127.0.0.1:8765/gmail/unread')
-            .then(res => res.json())
+        api.fetchEmails()
             .then(data => {
                 // Handle different response structures based on API implementation
                 const list = Array.isArray(data) ? data : (data.messages || []);

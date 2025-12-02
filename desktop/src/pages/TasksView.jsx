@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { CheckSquare, Plus, Trash2, CheckCircle2, Circle } from 'lucide-react';
+import { api } from '../services/api';
 
 const TasksView = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://127.0.0.1:8765/tasks/')
-            .then(res => res.json())
+        api.fetchTasks()
             .then(data => {
                 setTasks(Array.isArray(data) ? data : []);
             })
@@ -43,7 +43,7 @@ const TasksView = () => {
                                 </button>
 
                                 <div className="flex-1">
-                                    <h3 className={`font-medium text-lg ${task.completed ? 'text-hva-dim line-through' : 'text-hva-cream'}`}>
+                                    <h3 className={`font - medium text - lg ${task.completed ? 'text-hva-dim line-through' : 'text-hva-cream'} `}>
                                         {task.title || task.content || "مهمة بدون عنوان"}
                                     </h3>
                                     {task.due_date && (
