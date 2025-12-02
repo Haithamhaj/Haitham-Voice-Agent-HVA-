@@ -12,9 +12,9 @@ const Dashboard = () => {
         const fetchStats = async () => {
             try {
                 const [tasksRes, gmailRes, calendarRes] = await Promise.all([
-                    fetch('http://localhost:8765/tasks/'),
-                    fetch('http://localhost:8765/gmail/unread'),
-                    fetch('http://localhost:8765/calendar/today')
+                    fetch('http://127.0.0.1:8765/tasks/'),
+                    fetch('http://127.0.0.1:8765/gmail/unread'),
+                    fetch('http://127.0.0.1:8765/calendar/today')
                 ]);
 
                 const tasksData = await tasksRes.json();

@@ -6,7 +6,7 @@ const TasksView = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:8765/tasks/')
+        fetch('http://127.0.0.1:8765/tasks/')
             .then(res => res.json())
             .then(data => {
                 setTasks(Array.isArray(data) ? data : []);

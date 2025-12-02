@@ -6,7 +6,7 @@ const CalendarView = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:8765/calendar/today')
+        fetch('http://127.0.0.1:8765/calendar/today')
             .then(res => res.json())
             .then(data => {
                 const list = Array.isArray(data) ? data : (data.events || []);

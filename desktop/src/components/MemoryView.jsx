@@ -7,7 +7,7 @@ const MemoryView = () => {
     const [searchResults, setSearchResults] = useState([]);
 
     useEffect(() => {
-        fetch('http://localhost:8765/memory/stats')
+        fetch('http://127.0.0.1:8765/memory/stats')
             .then(res => res.json())
             .then(data => setStats(data))
             .catch(err => console.error(err));
@@ -17,7 +17,7 @@ const MemoryView = () => {
         e.preventDefault();
         if (!searchQuery.trim()) return;
 
-        fetch(`http://localhost:8765/memory/search?query=${encodeURIComponent(searchQuery)}`)
+        fetch(`http://127.0.0.1:8765/memory/search?query=${encodeURIComponent(searchQuery)}`)
             .then(res => res.json())
             .then(data => setSearchResults(data))
             .catch(err => console.error(err));

@@ -7,7 +7,7 @@ const GmailView = () => {
 
     const fetchEmails = () => {
         setLoading(true);
-        fetch('http://localhost:8765/gmail/unread')
+        fetch('http://127.0.0.1:8765/gmail/unread')
             .then(res => res.json())
             .then(data => {
                 // Handle different response structures based on API implementation

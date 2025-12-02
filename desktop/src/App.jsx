@@ -17,7 +17,7 @@ function App() {
   // WebSocket Connection
   useEffect(() => {
     const connectWs = () => {
-      const ws = new WebSocket('ws://localhost:8765/ws');
+      const ws = new WebSocket('ws://127.0.0.1:8765/ws');
 
       ws.onopen = () => {
         setWsConnected(true);
@@ -54,9 +54,9 @@ function App() {
   const toggleListening = async () => {
     try {
       if (isListening) {
-        await fetch('http://localhost:8765/voice/stop', { method: 'POST' });
+        await fetch('http://127.0.0.1:8765/voice/stop', { method: 'POST' });
       } else {
-        await fetch('http://localhost:8765/voice/start', { method: 'POST' });
+        await fetch('http://127.0.0.1:8765/voice/start', { method: 'POST' });
       }
     } catch (e) {
       console.error("Failed to toggle voice", e);
