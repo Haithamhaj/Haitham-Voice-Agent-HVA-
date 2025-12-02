@@ -14,7 +14,7 @@ async def get_tasks():
         
     try:
         if hasattr(task_tool, "list_tasks"):
-            tasks = await task_tool.list_tasks()
+            tasks = task_tool.list_tasks()
             return tasks
         else:
             return {"error": "Method not found"}

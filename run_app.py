@@ -47,7 +47,7 @@ def main():
         # If we want to run the FULL app, we need to start vite server too if it's not running.
         # The 'electron:dev' script does both.
         
-        cmd = ["npm", "run", "electron:dev"]
+        cmd = "npm run electron:dev"
         
         electron_process = subprocess.Popen(
             cmd,

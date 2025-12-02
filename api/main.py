@@ -23,8 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global state
-active_connections: list[WebSocket] = []
+from api.connection_manager import manager
 
 @app.get("/")
 async def root():
@@ -36,20 +35,17 @@ async def health_check():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    active_connections.append(websocket)
+    await manager.connect(websocket)
     try:
         while True:
             data = await websocket.receive_json()
-            # Echo for now, or handle ping/pong
             if data.get("type") == "ping":
                 await websocket.send_json({"type": "pong"})
     except WebSocketDisconnect:
-        active_connections.remove(websocket)
+        manager.disconnect(websocket)
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
-        if websocket in active_connections:
-            active_connections.remove(websocket)
+        manager.disconnect(websocket)
 
 from api.routes import voice, memory, gmail, calendar, tasks, system
 
