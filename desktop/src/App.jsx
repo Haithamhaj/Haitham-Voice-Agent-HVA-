@@ -1,35 +1,92 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import TitleBar from './components/TitleBar';
+import Sidebar from './components/Sidebar';
+import Dashboard from './components/Dashboard';
+import MemoryView from './components/MemoryView';
+import GmailView from './components/GmailView';
+import CalendarView from './components/CalendarView';
+import TasksView from './components/TasksView';
+import SettingsView from './components/SettingsView';
+import VoiceOverlay from './components/VoiceOverlay';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isListening, setIsListening] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
+
+  // WebSocket Connection
+  useEffect(() => {
+    const connectWs = () => {
+      const ws = new WebSocket('ws://localhost:8765/ws');
+
+      ws.onopen = () => {
+        setWsConnected(true);
+        console.log('WebSocket Connected');
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'status') {
+          setIsListening(data.listening);
+        }
+      };
+
+      ws.onclose = () => {
+        setWsConnected(false);
+        // Reconnect after 3 seconds
+        setTimeout(connectWs, 3000);
+      };
+
+      return ws;
+    };
+
+    const ws = connectWs();
+    return () => ws.close();
+  }, []);
+
+  // Listen for keyboard shortcut from Electron
+  useEffect(() => {
+    window.electronAPI?.onTriggerVoice(() => {
+      toggleListening();
+    });
+  }, [isListening]); // Add dependency to ensure latest state is used
+
+  const toggleListening = async () => {
+    try {
+      if (isListening) {
+        await fetch('http://localhost:8765/voice/stop', { method: 'POST' });
+      } else {
+        await fetch('http://localhost:8765/voice/start', { method: 'POST' });
+      }
+    } catch (e) {
+      console.error("Failed to toggle voice", e);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <HashRouter>
+      <div className="h-screen bg-hva-deep text-hva-cream overflow-hidden rounded-2xl flex flex-col" dir="rtl">
+        <TitleBar />
+
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar isListening={isListening} wsConnected={wsConnected} />
+
+          <main className="flex-1 overflow-auto p-8 bg-hva-primary/30">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/memory" element={<MemoryView />} />
+              <Route path="/gmail" element={<GmailView />} />
+              <Route path="/calendar" element={<CalendarView />} />
+              <Route path="/tasks" element={<TasksView />} />
+              <Route path="/settings" element={<SettingsView />} />
+            </Routes>
+          </main>
+        </div>
+
+        {isListening && <VoiceOverlay onClose={toggleListening} />}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </HashRouter>
+  );
 }
 
-export default App
+export default App;

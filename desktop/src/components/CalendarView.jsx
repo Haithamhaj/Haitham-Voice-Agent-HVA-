@@ -1,0 +1,73 @@
+import React, { useState, useEffect } from 'react';
+import { Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
+
+const CalendarView = () => {
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch('http://localhost:8765/calendar/today')
+            .then(res => res.json())
+            .then(data => {
+                setEvents(Array.isArray(data) ? data : []);
+            })
+            .catch(err => console.error(err))
+            .finally(() => setLoading(false));
+    }, []);
+
+    return (
+        <div className="space-y-6">
+            <header className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-hva-cream flex items-center gap-3">
+                        <CalendarIcon className="text-blue-500" size={32} />
+                        التقويم
+                    </h1>
+                    <p className="text-hva-muted mt-1">مواعيد اليوم</p>
+                </div>
+            </header>
+
+            <div className="grid gap-4">
+                {loading ? (
+                    <div className="text-center text-hva-muted py-8">جاري التحميل...</div>
+                ) : events.length > 0 ? (
+                    events.map((event, index) => (
+                        <div key={index} className="bg-hva-card p-5 rounded-2xl border border-hva-border-subtle flex gap-4 hover:border-blue-500/30 transition-colors">
+                            <div className="flex flex-col items-center justify-center bg-hva-primary/50 rounded-xl w-16 h-16 text-blue-400">
+                                <span className="text-xs font-bold uppercase">{new Date(event.start?.dateTime || event.start?.date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                                <span className="text-xl font-bold">{new Date(event.start?.dateTime || event.start?.date).getDate()}</span>
+                            </div>
+
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold text-hva-cream mb-1">{event.summary || "بدون عنوان"}</h3>
+                                <div className="flex items-center gap-4 text-sm text-hva-muted">
+                                    <div className="flex items-center gap-1">
+                                        <Clock size={14} />
+                                        <span>
+                                            {new Date(event.start?.dateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                            {' - '}
+                                            {new Date(event.end?.dateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
+                                    {event.location && (
+                                        <div className="flex items-center gap-1">
+                                            <MapPin size={14} />
+                                            <span>{event.location}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="p-12 text-center flex flex-col items-center text-hva-muted bg-hva-card rounded-2xl border border-hva-border-subtle">
+                        <CalendarIcon size={48} className="mb-4 opacity-20" />
+                        <p>لا توجد مواعيد اليوم</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default CalendarView;

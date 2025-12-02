@@ -1,0 +1,99 @@
+import React, { useState, useEffect } from 'react';
+import { Activity, Clock, Sun } from 'lucide-react';
+
+const Dashboard = () => {
+    const [stats, setStats] = useState({
+        tasks: 0,
+        emails: 0,
+        events: 0
+    });
+
+    useEffect(() => {
+        // Fetch stats from API
+        const fetchStats = async () => {
+            try {
+                const [tasksRes, gmailRes, calendarRes] = await Promise.all([
+                    fetch('http://localhost:8765/tasks/'),
+                    fetch('http://localhost:8765/gmail/unread'),
+                    fetch('http://localhost:8765/calendar/today')
+                ]);
+
+                // Handle responses (mocking for now if API returns complex objects)
+                // In real implementation, we'd parse the JSON
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats", error);
+            }
+        };
+
+        fetchStats();
+    }, []);
+
+    return (
+        <div className="space-y-6">
+            <header className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-hva-cream">صباح الخير، هيثم</h1>
+                    <p className="text-hva-muted mt-1">إليك ملخص سريع ليومك</p>
+                </div>
+                <div className="bg-hva-card p-3 rounded-2xl border border-hva-border-subtle flex items-center gap-3">
+                    <Sun className="text-yellow-400" />
+                    <span className="text-hva-cream font-medium">24°C مشمس</span>
+                </div>
+            </header>
+
+            <div className="grid grid-cols-3 gap-6">
+                <div className="bg-hva-card p-6 rounded-2xl border border-hva-border-subtle hover:border-hva-accent/30 transition-colors group">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                            <Activity size={20} />
+                        </div>
+                        <span className="text-2xl font-bold text-hva-cream">5</span>
+                    </div>
+                    <h3 className="text-hva-muted font-medium">مهام معلقة</h3>
+                </div>
+
+                <div className="bg-hva-card p-6 rounded-2xl border border-hva-border-subtle hover:border-hva-accent/30 transition-colors group">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform">
+                            <Activity size={20} />
+                        </div>
+                        <span className="text-2xl font-bold text-hva-cream">12</span>
+                    </div>
+                    <h3 className="text-hva-muted font-medium">رسائل غير مقروءة</h3>
+                </div>
+
+                <div className="bg-hva-card p-6 rounded-2xl border border-hva-border-subtle hover:border-hva-accent/30 transition-colors group">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform">
+                            <Clock size={20} />
+                        </div>
+                        <span className="text-2xl font-bold text-hva-cream">3</span>
+                    </div>
+                    <h3 className="text-hva-muted font-medium">مواعيد اليوم</h3>
+                </div>
+            </div>
+
+            <div className="bg-hva-card rounded-2xl border border-hva-border-subtle p-6">
+                <h2 className="text-xl font-bold text-hva-cream mb-4">نشاط النظام</h2>
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4 p-3 rounded-xl bg-hva-primary/50">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <div className="flex-1">
+                            <div className="text-sm text-hva-cream">تم تحديث الذاكرة بنجاح</div>
+                            <div className="text-xs text-hva-dim">قبل 5 دقائق</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4 p-3 rounded-xl bg-hva-primary/50">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <div className="flex-1">
+                            <div className="text-sm text-hva-cream">تمت مزامنة البريد الإلكتروني</div>
+                            <div className="text-xs text-hva-dim">قبل 15 دقيقة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Dashboard;
