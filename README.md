@@ -398,7 +398,19 @@ cd desktop
 npm run electron:dev
 ```
 
-### أوامر صوتية للتجربة | Voice Commands to Try
+### بناء النسخة النهائية | Production Build
+
+لبناء التطبيق كملف `.app` مستقل (يتضمن الواجهة الخلفية والأمامية):
+
+```bash
+cd desktop
+npm run package
+```
+
+ستجد التطبيق الناتج في:
+`desktop/dist/mac-arm64/HVA Premium.app`
+
+يمكنك نقله إلى مجلد `Applications` وتشغيله مباشرة.
 
 <div dir="rtl">
 

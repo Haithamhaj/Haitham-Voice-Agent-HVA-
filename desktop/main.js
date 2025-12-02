@@ -1,13 +1,35 @@
 import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow;
+let apiProcess;
+
+function startApi() {
+    if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: API should be running separately.');
+        return;
+    }
+
+    const apiPath = path.join(process.resourcesPath, 'hva_backend');
+    console.log('Starting API from:', apiPath);
+
+    apiProcess = spawn(apiPath, [], {
+        stdio: 'inherit'
+    });
+
+    apiProcess.on('error', (err) => {
+        console.error('Failed to start API:', err);
+    });
+}
 
 function createWindow() {
+    startApi();
+
     mainWindow = new BrowserWindow({
         width: 1400,
         height: 900,
@@ -49,8 +71,17 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+    if (apiProcess) {
+        apiProcess.kill();
+    }
     if (process.platform !== 'darwin') {
         app.quit();
+    }
+});
+
+app.on('before-quit', () => {
+    if (apiProcess) {
+        apiProcess.kill();
     }
 });
 

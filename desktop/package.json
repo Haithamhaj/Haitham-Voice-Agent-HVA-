@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "electron": "wait-on tcp:5173 && NODE_ENV=development electron .",
-    "electron:dev": "concurrently -k \"npm run dev\" \"npm run electron\""
+    "electron:dev": "concurrently -k \"npm run dev\" \"npm run electron\"",
+    "package": "npm run build && electron-builder"
   },
   "dependencies": {
     "react": "^19.2.0",
@@ -38,5 +39,32 @@
     "tailwindcss": "^3.4.17",
     "vite": "^7.2.4",
     "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.haitham.hva",
+    "productName": "HVA Premium",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist/hva_backend",
+        "to": "hva_backend",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   }
 }
