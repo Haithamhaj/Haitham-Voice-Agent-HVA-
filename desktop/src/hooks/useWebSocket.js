@@ -11,7 +11,7 @@ export const useWebSocket = () => {
             if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
             logger.info('Attempting to connect to WebSocket...');
-            const ws = new WebSocket('ws://127.0.0.1:8765/ws');
+            const ws = new WebSocket('ws://localhost:8765/ws');
             wsRef.current = ws;
 
             ws.onopen = () => {
