@@ -23,7 +23,8 @@ async def start_listening():
         # But for now, let's just await it.
         # Ideally, STTHandler should have a callback for partial results to stream back.
         
-        result = await stt_handler.listen_realtime()
+        from fastapi.concurrency import run_in_threadpool
+        result = await run_in_threadpool(stt_handler.listen_realtime)
         
         await manager.broadcast({"type": "status", "listening": False})
         return {"status": "success", "transcript": result}

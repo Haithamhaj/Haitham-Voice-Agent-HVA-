@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from haitham_voice_agent.dispatcher import get_dispatcher
+from haitham_voice_agent.intent_router import route_command
+from haitham_voice_agent.llm_router import get_router as get_llm_router
 import logging
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -13,23 +15,71 @@ class ChatRequest(BaseModel):
 async def chat(request: ChatRequest):
     """Process text chat message"""
     try:
+        text = request.message
+        logger.info(f"Chat request: {text}")
+        
         dispatcher = get_dispatcher()
-        # Use the dispatcher to process the text command
-        # This assumes dispatcher has a process_text method or similar
-        # If not, we might need to adapt it.
-        # For now, let's assume we can pass it to the planner or just return a mock response
-        # until we verify the dispatcher capabilities for text-only input.
+        llm_router = get_llm_router()
         
-        # Actually, let's try to use the same logic as voice but with text input
-        # The dispatcher usually takes an audio file or text.
+        # 1. Check Intent Router (Fast Path)
+        intent_result = route_command(text)
         
-        # Let's check dispatcher.py content first to be sure.
-        # But to avoid delay, I'll implement a basic echo/mock for now 
-        # and then refine it.
+        if intent_result["confidence"] > 0.8:
+            logger.info(f"Intent matched: {intent_result['action']}")
+            
+            # Map intent action to Dispatcher plan
+            # We need a mapping helper or just construct the step manually
+            action = intent_result["action"]
+            params = intent_result["params"]
+            
+            step = {}
+            
+            # Mapping logic
+            if action == "save_memory_note":
+                step = {"tool": "memory", "action": "save_note", "params": params}
+            elif action == "fetch_latest_email":
+                step = {"tool": "gmail", "action": "fetch_latest_email", "params": {}}
+            elif action == "list_tasks":
+                step = {"tool": "tasks", "action": "list_tasks", "params": {}}
+            elif action == "create_task":
+                 # Extract task content if possible, or pass raw text
+                 step = {"tool": "tasks", "action": "add_task", "params": {"description": text}}
+            else:
+                # Fallback to LLM if mapping not explicit
+                logger.info("Intent matched but no direct mapping, falling back to LLM")
+                step = None
+                
+            if step:
+                result = await dispatcher.dispatch(step)
+                return {"response": str(result.get("message") or result)}
+
+        # 2. LLM Planner (Slow Path)
+        logger.info("Generating execution plan via LLM...")
+        plan = await llm_router.generate_execution_plan(text)
         
-        response_text = f"استلمت رسالتك: {request.message}. (المعالج النصي قيد التطوير)"
+        # 3. Execute Plan
+        results = await dispatcher.execute_plan(plan)
+        
+        # Format response
+        if not results:
+             # Fallback to direct chat if no plan steps
+             logger.info("No plan steps, falling back to direct chat")
+             response_text = await llm_router.generate_with_gpt(text)
+             return {"response": response_text}
+             
+        last_result = results[-1]
+        
+        # Check for "Tool not found" error
+        if last_result.get("error") and "Tool not found" in last_result.get("message", ""):
+             logger.info("Tool not found, falling back to direct chat")
+             response_text = await llm_router.generate_with_gpt(text)
+             return {"response": response_text}
+
+        response_text = str(last_result.get("message") or last_result.get("result") or "تم التنفيذ بنجاح.")
         
         return {"response": response_text}
+
     except Exception as e:
-        logger.error(f"Error in chat: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error in chat: {e}", exc_info=True)
+        # Return error as response so user sees it in chat
+        return {"response": f"حدث خطأ: {str(e)}"}

@@ -1,7 +1,7 @@
 
 import { networkMonitor } from '../developer-toolkit/networkMonitor';
 
-const API_BASE_URL = 'http://localhost:8765';
+const API_BASE_URL = 'http://127.0.0.1:8765';
 
 const monitoredFetch = async (endpoint, options = {}) => {
     const url = `${API_BASE_URL}${endpoint}`;
