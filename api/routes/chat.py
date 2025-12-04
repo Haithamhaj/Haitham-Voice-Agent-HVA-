@@ -73,7 +73,8 @@ async def chat(request: ChatRequest):
             # We might need to map intents to actual tool calls if they differ
             # For now, let's assume dispatcher can handle or we map manually
             if ollama_result["intent"] == "open_folder":
-                 step = {"tool": "files", "action": "open_folder", "params": {"path": ollama_result["parameters"].get("path")}}
+                 # Use open_file for folders too, as it uses system 'open' command
+                 step = {"tool": "files", "action": "open_file", "params": {"path": ollama_result["parameters"].get("path")}}
             elif ollama_result["intent"] == "open_app":
                  step = {"tool": "system", "action": "open_app", "params": {"app_name": ollama_result["parameters"].get("app")}}
             elif ollama_result["intent"] == "show_files":
@@ -83,6 +84,14 @@ async def chat(request: ChatRequest):
                      "params": {
                          "directory": ollama_result["parameters"].get("path"),
                          "sort_by": ollama_result["parameters"].get("sort_by", "name")
+                     }
+                 }
+            elif ollama_result["intent"] == "organize_documents":
+                 step = {
+                     "tool": "files",
+                     "action": "organize_documents",
+                     "params": {
+                         "path": ollama_result["parameters"].get("path")
                      }
                  }
             

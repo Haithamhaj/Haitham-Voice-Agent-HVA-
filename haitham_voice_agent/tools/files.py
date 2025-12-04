@@ -93,7 +93,8 @@ class FileTools:
         folder: str = None,
         pattern: Optional[str] = None,
         recursive: bool = False,
-        sort_by: str = "name" # name, date, size
+        sort_by: str = "name", # name, date, size
+        **kwargs # Ignore extra params from LLM hallucinations
     ) -> Dict[str, Any]:
         """List files in a directory (Sandboxed)"""
         try:
