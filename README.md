@@ -386,19 +386,25 @@ The project is fortified with an advanced security system:
     *   **Approve/Reject**: You must explicitly click "Approve" (موافق) or "Reject" (إلغاء) to proceed.
     *   **Direct Execution**: Once approved, the system executes the command directly with a high-priority flag.
 
-### 🧠 Advanced Memory & Organization (v2.1)
+### 🧠 Advanced Memory & Organization (v2.2)
 
 <div dir="rtl">
 
 *   **Project Registry**: نظام مركزي لإدارة المشاريع (`projects.json`) يمنع تشتت الملفات.
-*   **File Index**: فهرس دلالي (Semantic Index) يربط الملفات بالمشاريع والمفاهيم، مما يسمح بالبحث عن الملفات بمحتواها وليس فقط باسمها.
-*   **Auto-Indexing**: عند نقل ملف إلى مشروع، يتم فهرسته وإنشاء "ذكرى" تلقائياً.
+*   **Graph Store**: قاعدة بيانات علاقات (Graph Database) تربط الملفات بالمشاريع والمفاهيم (مثل "الملف A" جزء من "المشروع B").
+*   **Smart Content Extraction**: استخراج ذكي للنصوص من ملفات PDF و Code و Text.
+*   **Hybrid Summarization**: استخدام **Qwen** (محلياً) لتلخيص الملفات بسرعة، مع الانتقال تلقائياً لـ **Gemini Flash** للملفات المعقدة.
+*   **Deep Search**: بحث دلالي (Semantic Search) داخل محتوى الملفات وليس فقط العناوين.
+*   **Auto-Indexing**: عند نقل ملف إلى مشروع، يتم فهرسته، تلخيصه، وربطه بالرسم البياني (Graph) تلقائياً.
 
 </div>
 
 *   **Project Registry**: A centralized system (`projects.json`) to manage projects and prevent file scatter.
-*   **File Index**: A semantic index linking files to projects and concepts, enabling search by content/meaning.
-*   **Auto-Indexing**: Moving a file to a project automatically indexes it and creates a memory entry.
+*   **Graph Store**: A relationship database linking files to projects and concepts (e.g., "File A" belongs to "Project B").
+*   **Smart Content Extraction**: Intelligent text extraction from PDF, Code, and Text files.
+*   **Hybrid Summarization**: Uses **Qwen** (locally) for fast summaries, auto-falling back to **Gemini Flash** for complex files.
+*   **Deep Search**: Semantic search within file content, not just filenames.
+*   **Auto-Indexing**: Moving a file to a project automatically indexes, summarizes, and links it to the Knowledge Graph.
 
 ---
 

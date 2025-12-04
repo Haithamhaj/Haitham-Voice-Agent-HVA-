@@ -21,7 +21,7 @@ globs:
 | **Desktop** | Electron 39 | `desktop/` folder |
 | **Backend** | Python FastAPI | `api/` folder, Uvicorn |
 | **AI/Voice** | Faster Whisper | `haitham_voice_agent/` |
-| **Database** | ChromaDB | Vector store for memory |
+| **Database** | ChromaDB + SQLite | Vector + Graph + Relational Memory |
 
 ---
 
@@ -44,6 +44,12 @@ globs:
 │   └── main.py               # Server Entry Point
 ├── haitham_voice_agent/      # Core AI Logic
 │   ├── tools/                # Tools (files, voice, memory)
+│   │   ├── memory/           # Memory System (SQLite, Vector, Graph)
+│   │   └── projects.py       # Project Registry
+│   ├── intelligence/         # AI Intelligence Layer
+│   │   ├── content_extractor.py # Smart Content Extraction
+│   │   ├── smart_summarizer.py  # Hybrid Summarization (Qwen/Gemini)
+│   │   └── file_router.py       # Auto-Index Logic
 │   ├── llm_router.py         # LLM Decision Logic
 │   └── dispatcher.py         # Tool Execution
 └── start_hva.sh              # Startup Script
