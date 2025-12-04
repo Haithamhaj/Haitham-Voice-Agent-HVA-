@@ -244,7 +244,7 @@ class FileTools:
         except Exception as e:
             return {"error": True, "message": str(e)}
 
-    async def open_file(self, path: str) -> Dict[str, Any]:
+    async def open_file(self, path: str, **kwargs) -> Dict[str, Any]:
         """Open a file or folder using system default app"""
         try:
             target_path = self._validate_path(path)

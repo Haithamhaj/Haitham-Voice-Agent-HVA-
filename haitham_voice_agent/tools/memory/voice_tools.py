@@ -167,9 +167,21 @@ Source: Voice
             logger.error(f"Voice search failed: {e}")
             return "واجهت مشكلة في البحث." if language == "ar" else "I encountered an error while searching your memories."
 
+    async def get_last_note(self) -> str:
+        """Get the most recent memory/note."""
+        try:
+            await self.ensure_initialized()
+            results = await self.memory_system.search_memories("", limit=1)
+            if results:
+                return f"Last note: {results[0].ultra_brief}"
+            return "No recent notes found."
+        except Exception:
+            return "Failed to retrieve last note."
+
     # Aliases for LLM compatibility
     save_note = process_voice_note
     save_note_local = process_voice_note
+    search_memory = search_memory_voice
     search = search_memory_voice
     semantic_query_local = search_memory_voice
     get_notes = search_memory_voice

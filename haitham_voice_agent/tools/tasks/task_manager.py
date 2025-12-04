@@ -126,5 +126,8 @@ class TaskManager:
             return True
         return False
 
+    # Aliases
+    add_task = create_task
+
 # Singleton
 task_manager = TaskManager()

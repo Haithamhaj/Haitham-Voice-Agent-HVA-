@@ -226,6 +226,31 @@ class SystemTools:
         # However, for now, let's return a success message that triggers the UI/TTS.
         return {"success": True, "message": "Starting Morning Briefing...", "action": "trigger_briefing"}
 
+    async def system_status(self) -> Dict[str, Any]:
+        """
+        Get basic system status (Battery, Volume).
+        For detailed health, use SystemSentry.
+        """
+        status = {
+            "volume": "Unknown", # TODO: Get actual volume
+            "battery": "Unknown"
+        }
+        
+        # Battery
+        try:
+            import psutil
+            battery = psutil.sensors_battery()
+            if battery:
+                status["battery"] = f"{round(battery.percent)}%"
+        except Exception:
+            pass
+            
+        return status
+
+    # Aliases
+    mute = mute_volume
+    unmute = unmute_volume
+
     async def move_file(self, source: str = None, destination: str = None, source_path: str = None, destination_path: str = None, overwrite: bool = False) -> Dict[str, Any]:
         """
         Move a file (Delegates to FileTools).
