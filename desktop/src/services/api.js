@@ -38,10 +38,10 @@ export const api = {
     searchMemory: (query) => monitoredFetch(`/memory/search?query=${encodeURIComponent(query)}`),
 
     // Chat
-    sendChat: (message) => monitoredFetch('/chat/', {
+    sendChat: (message, command = null, params = null) => monitoredFetch('/chat/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ message, command, params })
     }),
 
     // System

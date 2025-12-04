@@ -287,8 +287,22 @@ class FileTools:
             size /= 1024.0
         return f"{size:.1f} TB"
 
-    async def move_file(self, source: str, destination: str, overwrite: bool = False) -> Dict[str, Any]:
+    async def move_file(self, source: str, destination: str, overwrite: bool = False, confirmed: bool = False) -> Dict[str, Any]:
         """Move a file from source to destination (Sandboxed)"""
+        if not confirmed:
+            return {
+                "status": "confirmation_required",
+                "message": f"Are you sure you want to move '{Path(source).name}' to '{Path(destination).name}'?",
+                "command": "files.move_file",
+                "params": {
+                    "source": source,
+                    "destination": destination,
+                    "overwrite": overwrite,
+                    "confirmed": True
+                },
+                "risk_level": "medium"
+            }
+
         try:
             # Validate paths
             src_path = self._validate_path(source)

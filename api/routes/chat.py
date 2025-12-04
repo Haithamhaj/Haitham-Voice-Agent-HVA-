@@ -9,21 +9,52 @@ import logging
 router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
 
+from typing import Optional, Dict, Any
+
 class ChatRequest(BaseModel):
     message: str
+    command: Optional[str] = None
+    params: Optional[Dict[str, Any]] = None
 
 @router.post("/")
 async def chat(request: ChatRequest):
-    """Process text chat message"""
+    """Process text chat message or direct command"""
     try:
         text = request.message
-        logger.info(f"Chat request: {text}")
+        command = request.command
+        params = request.params
+        
+        logger.info(f"Chat request: {text} (Command: {command})")
         
         dispatcher = get_dispatcher()
         llm_router = get_llm_router()
         ollama = get_orchestrator()
         
-        # 0. Check Ollama Orchestrator (Local Intelligence)
+        # 0. Direct Command Execution (e.g. from Confirmation Buttons)
+        if command:
+            logger.info(f"Executing direct command: {command}")
+            # Parse tool.action
+            try:
+                tool_name, action_name = command.split(".")
+                step = {
+                    "tool": tool_name,
+                    "action": action_name,
+                    "params": params or {}
+                }
+                result = await dispatcher.dispatch(step)
+                
+                # Handle result
+                return {
+                    "response": str(result.get("message") or result),
+                    "type": "action_result",
+                    "data": result,
+                    "model": "System (Direct)"
+                }
+            except Exception as e:
+                logger.error(f"Direct command failed: {e}")
+                return {"response": f"فشل تنفيذ الأمر: {str(e)}", "model": "System"}
+
+        # 1. Check Ollama Orchestrator (Local Intelligence)
         # This handles greetings, simple Q&A, and local commands FAST without cloud cost.
         ollama_result = await ollama.classify_request(text)
         

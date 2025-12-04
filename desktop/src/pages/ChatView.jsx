@@ -107,11 +107,81 @@ const ChatView = () => {
         return 'bg-hva-accent/20 text-hva-accent border-hva-accent/30';
     };
 
+    const handleConfirm = async (msgData) => {
+        if (!msgData || !msgData.command) return;
+
+        // Add user confirmation message
+        const userMessage = { role: 'user', content: 'موافق' };
+        setMessages(prev => [...prev, userMessage]);
+        setIsProcessing(true);
+
+        try {
+            // Send direct command with confirmed=True
+            const response = await api.sendChat(
+                "موافق",
+                msgData.command,
+                { ...msgData.params, confirmed: true }
+            );
+
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: response.response,
+                data: response.data,
+                model: response.model
+            }]);
+        } catch (error) {
+            console.error("Confirm error:", error);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'عذراً، حدث خطأ أثناء التنفيذ.'
+            }]);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleReject = () => {
+        const userMessage = { role: 'user', content: 'إلغاء' };
+        setMessages(prev => [...prev, userMessage]);
+
+        setTimeout(() => {
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'تم إلغاء العملية.',
+                model: 'System'
+            }]);
+        }, 500);
+    };
+
     const renderMessageContent = (msg) => {
         const content = (
             <>
                 {/* If it's a simple text message */}
                 {!msg.data && <p className="leading-relaxed">{msg.content}</p>}
+
+                {/* Confirmation Request */}
+                {msg.data && msg.data.status === 'confirmation_required' && (
+                    <div className="space-y-4">
+                        <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-xl">
+                            <p className="text-yellow-200 font-medium mb-2">⚠️ تأكيد العملية</p>
+                            <p className="text-white/90 leading-relaxed">{msg.data.message}</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => handleConfirm(msg.data)}
+                                className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2 rounded-lg transition-colors font-medium"
+                            >
+                                موافق
+                            </button>
+                            <button
+                                onClick={handleReject}
+                                className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 py-2 rounded-lg transition-colors font-medium"
+                            >
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* If it's an action result with files */}
                 {msg.data && msg.data.files && Array.isArray(msg.data.files) && (
@@ -145,8 +215,8 @@ const ChatView = () => {
                     </div>
                 )}
 
-                {/* Default rich rendering */}
-                {msg.data && !msg.data.files && (
+                {/* Default rich rendering (skip if confirmation or files) */}
+                {msg.data && !msg.data.files && msg.data.status !== 'confirmation_required' && (
                     <div className="space-y-2">
                         <p className="leading-relaxed">{msg.content}</p>
                         {msg.data.data && typeof msg.data.data === 'string' && (
