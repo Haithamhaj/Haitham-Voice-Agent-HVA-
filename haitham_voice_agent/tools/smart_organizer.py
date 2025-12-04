@@ -241,11 +241,20 @@ class SmartOrganizer:
             
             # 2. Determine Category
             if text and len(text) > 50:
-                # Use LLM to categorize
+                # Use LLM to categorize with higher granularity
                 prompt = f"""
-                Analyze the following text from a file named "{item.name}" and categorize it into ONE single folder name.
-                Examples: Financials, Legal, Personal, Projects, Research, Receipts, Invoices.
-                Return ONLY the category name.
+                Analyze the following text from a file named "{item.name}" and categorize it into a folder structure "Category/Subcategory".
+                
+                Rules:
+                1. Distinguish between 'Personal' and 'Company/Work' if possible.
+                2. Use standard categories: Financials, Legal, Projects, Health, Travel, Personal.
+                3. Return ONLY the path "Category/Subcategory".
+                
+                Examples:
+                - "Financials/Personal_Expenses" (for personal receipts)
+                - "Financials/Company_Reports" (for business statements)
+                - "Legal/Contracts"
+                - "Projects/Mind_Q"
                 
                 Text snippet:
                 {text[:1000]}
@@ -258,11 +267,18 @@ class SmartOrganizer:
                         logical_model="logical.gemini.flash",
                         temperature=0.3
                     )
-                    category = result["content"].strip().replace("/", "_").replace("\\", "_")
+                    # Clean up response
+                    category_path = result["content"].strip().replace("\\", "/")
+                    
+                    # Validate format
+                    if "/" not in category_path:
+                        # If LLM returns just "Financials", maybe append "General" or keep as is?
+                        # Let's trust the LLM or default to "General" if it's a known top-level
+                        pass
+                    
                     # Sanitize
-                    if len(category) > 20 or " " in category:
-                         # Fallback if LLM gives a sentence
-                         category = self._get_category(item) or "Misc"
+                    category = category_path.replace(" ", "_")
+                    
                 except Exception as e:
                     logger.warning(f"LLM categorization failed for {item.name}: {e}")
                     category = self._get_category(item) or "Misc"

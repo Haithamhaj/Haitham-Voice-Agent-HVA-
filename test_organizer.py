@@ -47,17 +47,28 @@ async def test_smart_organizer():
     print("\nVerifying results...")
     
     # Check Old File
-    # It should be moved to Documents/Financials (or similar)
+    # It should be moved to Documents/Financials/Company_Reports (or similar)
     # We search in Documents recursively
     found_old = False
     for path in documents_dir.rglob("old_invoice.txt"):
         print(f"SUCCESS: Found old file at: {path}")
         found_old = True
-        # Check category folder
-        parent = path.parent.name
-        print(f"Category Folder: {parent}")
-        if parent not in ["Downloads", "Documents"]: # Should be a category name
-             print("Category seems valid.")
+        
+        # Check category folder structure
+        # Expected: Documents/Category/Subcategory/old_invoice.txt
+        # path.parent.name should be Subcategory
+        # path.parent.parent.name should be Category
+        
+        subcategory = path.parent.name
+        category = path.parent.parent.name
+        
+        print(f"Category: {category}, Subcategory: {subcategory}")
+        
+        if category == "Documents":
+             print("WARNING: File is at root of Documents or only 1 level deep.")
+        else:
+             print("SUCCESS: File is nested in subfolder.")
+             
         break
         
     if not found_old:
