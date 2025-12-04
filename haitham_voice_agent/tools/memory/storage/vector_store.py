@@ -71,10 +71,15 @@ class VectorStore:
         Semantic search
         """
         try:
+            # Handle multiple filter criteria (ChromaDB requires $and)
+            final_filter = filter_criteria
+            if filter_criteria and len(filter_criteria) > 1:
+                final_filter = {"$and": [{k: v} for k, v in filter_criteria.items()]}
+
             results = self.collection.query(
                 query_embeddings=[query_embedding],
                 n_results=limit,
-                where=filter_criteria
+                where=final_filter
             )
             
             # Format results

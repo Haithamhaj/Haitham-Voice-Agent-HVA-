@@ -11,6 +11,8 @@ from .intelligence.classifier import SmartClassifier
 from .intelligence.summarizer import Summarizer
 from .utils.embeddings import EmbeddingGenerator
 from haitham_voice_agent.intelligence.file_router import file_router
+from haitham_voice_agent.intelligence.content_extractor import content_extractor
+from haitham_voice_agent.intelligence.smart_summarizer import smart_summarizer
 
 logger = logging.getLogger(__name__)
 
@@ -48,20 +50,81 @@ class MemorySystem:
             }
         return None
 
+
+
     async def ingest_file(self, path: str, project_id: str, description: str = None, tags: List[str] = None) -> bool:
         """
         Ingest a file into all 3 memory layers (SQLite, Vector, Graph)
         """
         try:
-            # 1. SQLite & Vector (via existing index_file)
-            # This handles SQLite file_index and Vector embedding
-            index_success = await self.index_file(path, project_id, description or "", tags or [])
+            # 0. Extract Content & Summarize (Smart Layer)
+            extracted_text = content_extractor.extract_text(path)
+            final_description = description
+            
+            if extracted_text:
+                logger.info(f"Extracted {len(extracted_text)} chars from {path}")
+                
+                # Generate summary if no description provided
+                if not final_description:
+                    final_description = await smart_summarizer.summarize_content(extracted_text)
+                    logger.info(f"Generated summary: {final_description}")
+            
+            # 1. SQLite & Vector (via index_file)
+            # Pass extracted text for deep indexing
+            index_success = await self.index_file(
+                path, 
+                project_id, 
+                final_description or "", 
+                tags or [],
+                content=extracted_text
+            )
+            
             if not index_success:
                 return False
                 
             # 2. Graph Store
             # Create File Node
-            await self.graph_store.add_node(path, "File", {"description": description})
+            await self.graph_store.add_node(path, "File", {"description": final_description})
+            
+            # ... (rest of graph logic) ...
+            
+            # Create Project Node (ensure exists)
+            await self.graph_store.add_node(project_id, "Project", {})
+            
+            # Link Project -> File
+            await self.graph_store.add_edge(project_id, path, "HAS_FILE", {"since": datetime.now().isoformat()})
+            
+            # Link File -> Concepts (Tags)
+            if tags:
+                for tag in tags:
+                    tag_id = f"concept:{tag.lower()}"
+                    await self.graph_store.add_node(tag_id, "Concept", {"name": tag})
+                    await self.graph_store.add_edge(path, tag_id, "REFERS_TO", {})
+            
+            logger.info(f"Ingested file {path} into Project {project_id} (3-Layer)")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to ingest file {path}: {e}")
+            return False
+
+    async def index_file(self, path: str, project_id: str, description: str = "", tags: List[str] = None, content: str = None) -> bool:
+        """
+        Index a file in the memory system.
+        Generates an embedding for the description/content to allow semantic search.
+        """
+        try:
+            # Generate embedding
+            # If we have full content, we should ideally chunk it.
+            # For now, we'll embed the description + tags + (first 1000 chars of content)
+            # to keep it simple and fast.
+            # TODO: Implement full chunking for large files.
+            
+            content_snippet = content[:1000] if content else ""
+            content_to_embed = f"{description} {' '.join(tags or [])} {content_snippet}"
+            embedding = await self.embedding_generator.generate(content_to_embed)
+            
+            # ... (rest of indexing logic) ...
             
             # Create Project Node (ensure exists)
             await self.graph_store.add_node(project_id, "Project", {})
@@ -214,14 +277,20 @@ class MemorySystem:
             logger.error(f"Failed to delete memory {memory_id}: {e}")
             return False
 
-    async def index_file(self, path: str, project_id: str, description: str = "", tags: List[str] = None) -> bool:
+    async def index_file(self, path: str, project_id: str, description: str = "", tags: List[str] = None, content: str = None) -> bool:
         """
         Index a file in the memory system.
         Generates an embedding for the description/content to allow semantic search.
         """
         try:
-            # Generate embedding for description + tags
-            content_to_embed = f"{description} {' '.join(tags or [])}"
+            # Generate embedding
+            # If we have full content, we should ideally chunk it.
+            # For now, we'll embed the description + tags + (first 1000 chars of content)
+            # to keep it simple and fast.
+            # TODO: Implement full chunking for large files.
+            
+            content_snippet = content[:1000] if content else ""
+            content_to_embed = f"{description} {' '.join(tags or [])} {content_snippet}"
             embedding = await self.embedding_generator.generate(content_to_embed)
             
             # Store embedding in Vector Store (using path as ID, or a hash)
@@ -244,6 +313,7 @@ class MemorySystem:
         except Exception as e:
             logger.error(f"Failed to index file {path}: {e}")
             return False
+
 
     async def search_files(self, query: str, project_id: Optional[str] = None, limit: int = 5) -> List[Dict[str, Any]]:
         """
