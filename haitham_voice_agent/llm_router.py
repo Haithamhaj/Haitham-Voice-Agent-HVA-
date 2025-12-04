@@ -96,7 +96,7 @@ class LLMRouter:
         system_instruction: Optional[str] = None,
         temperature: float = 0.7,
         logical_model: str = "logical.gemini.pro"
-    ) -> str:
+    ) -> Dict[str, str]:
         """
         Generate response using Gemini
         
@@ -107,7 +107,7 @@ class LLMRouter:
             logical_model: Logical model name to use (default: logical.gemini.pro)
             
         Returns:
-            str: Generated response
+            dict: {"content": str, "model": str}
         """
         # Resolve model at runtime
         model_name = Config.resolve_gemini_model(logical_model)
@@ -133,7 +133,7 @@ class LLMRouter:
             
             result = response.text
             logger.debug(f"Gemini response: {result[:100]}...")
-            return result
+            return {"content": result, "model": model_name}
             
         except Exception as e:
             logger.error(f"Gemini generation failed: {e}")
@@ -146,7 +146,7 @@ class LLMRouter:
         temperature: float = 0.7,
         response_format: Optional[str] = None,
         logical_model: str = "logical.mini"
-    ) -> str:
+    ) -> Dict[str, str]:
         """
         Generate response using GPT
         
@@ -158,7 +158,7 @@ class LLMRouter:
             logical_model: Logical model name (default: logical.mini -> gpt-4o)
             
         Returns:
-            str: Generated response
+            dict: {"content": str, "model": str}
         """
         # Resolve model
         model_name = Config.resolve_model(logical_model)
@@ -205,7 +205,7 @@ class LLMRouter:
             
             result = response.choices[0].message.content
             logger.debug(f"GPT response: {result[:100]}...")
-            return result
+            return {"content": result, "model": model_name}
             
         except Exception as e:
             logger.error(f"GPT generation failed: {e}")
@@ -270,14 +270,14 @@ Generate an execution plan in JSON format.
 """
         
         try:
-            response = await self.generate_with_gpt(
+            response_data = await self.generate_with_gpt(
                 prompt=prompt,
                 system_instruction=system_instruction,
                 temperature=0.3,  # Lower temperature for structured output
                 response_format="json_object"
             )
             
-            plan = json.loads(response)
+            plan = json.loads(response_data["content"])
             
             # Validate plan structure
             required_keys = ["intent", "steps", "tools", "requires_confirmation"]
@@ -291,7 +291,7 @@ Generate an execution plan in JSON format.
             logger.error(f"Failed to generate execution plan: {e}")
             raise
     
-    async def summarize_with_gemini(self, text: str, summary_type: str = "brief") -> str:
+    async def summarize_with_gemini(self, text: str, summary_type: str = "brief") -> Dict[str, str]:
         """
         Summarize text using Gemini
         
@@ -300,7 +300,7 @@ Generate an execution plan in JSON format.
             summary_type: "brief", "detailed", or "multi-level"
             
         Returns:
-            str: Summary
+            dict: {"content": str, "model": str}
         """
         logger.info(f"Summarizing text ({summary_type})...")
         
@@ -328,7 +328,7 @@ DETAILED: ...
         
         return await self.generate_with_gemini(prompt, temperature=0.5)
     
-    async def translate_with_gemini(self, text: str, target_language: str) -> str:
+    async def translate_with_gemini(self, text: str, target_language: str) -> Dict[str, str]:
         """
         Translate text using Gemini
         
@@ -337,7 +337,7 @@ DETAILED: ...
             target_language: Target language code (ar, en, etc.)
             
         Returns:
-            str: Translated text
+            dict: {"content": str, "model": str}
         """
         logger.info(f"Translating to {target_language}...")
         

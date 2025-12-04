@@ -45,7 +45,9 @@ const ChatView = () => {
                     setMessages(prev => [...prev, {
                         role: 'assistant',
                         content: response.response,
-                        data: response.data // Store rich data
+                        content: response.response,
+                        data: response.data, // Store rich data
+                        model: response.model // Store model name
                     }]);
                 } catch (error) {
                     console.error("Chat error:", error);
@@ -83,7 +85,8 @@ const ChatView = () => {
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: response.response,
-                data: response.data // Store rich data
+                data: response.data, // Store rich data
+                model: response.model // Store model name
             }]);
         } catch (error) {
             console.error("Chat error:", error);
@@ -96,54 +99,73 @@ const ChatView = () => {
         }
     };
 
+    const getModelBadgeColor = (model) => {
+        if (!model) return 'bg-gray-500/20 text-gray-400';
+        if (model.includes('Local') || model.includes('Qwen')) return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+        if (model.includes('GPT')) return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+        if (model.includes('Gemini')) return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+        return 'bg-hva-accent/20 text-hva-accent border-hva-accent/30';
+    };
+
     const renderMessageContent = (msg) => {
-        // If it's a simple text message
-        if (!msg.data) {
-            return <p className="leading-relaxed">{msg.content}</p>;
-        }
+        const content = (
+            <>
+                {/* If it's a simple text message */}
+                {!msg.data && <p className="leading-relaxed">{msg.content}</p>}
 
-        // If it's an action result with files
-        if (msg.data.files && Array.isArray(msg.data.files)) {
-            return (
-                <div className="space-y-3">
-                    <p className="leading-relaxed font-medium border-b border-white/10 pb-2 mb-2">
-                        {msg.content}
-                    </p>
-                    <div className="grid gap-2">
-                        {msg.data.files.map((file, i) => (
-                            <div
-                                key={i}
-                                onClick={() => api.openFile(file.path)}
-                                className="flex items-center gap-3 bg-black/20 p-3 rounded-lg hover:bg-black/30 transition-colors cursor-pointer group"
-                            >
-                                <div className={`w-8 h-8 rounded flex items-center justify-center transition-transform group-hover:scale-110 ${file.type === 'directory' || file.extension === 'DIR'
-                                    ? 'bg-blue-500/20 text-blue-400'
-                                    : 'bg-hva-accent/20 text-hva-accent'
-                                    }`}>
-                                    {file.type === 'directory' || file.extension === 'DIR'
-                                        ? <span className="text-xs font-bold">DIR</span>
-                                        : <span className="text-xs font-bold">{file.extension?.replace('.', '') || 'FILE'}</span>
-                                    }
+                {/* If it's an action result with files */}
+                {msg.data && msg.data.files && Array.isArray(msg.data.files) && (
+                    <div className="space-y-3">
+                        <p className="leading-relaxed font-medium border-b border-white/10 pb-2 mb-2">
+                            {msg.content}
+                        </p>
+                        <div className="grid gap-2">
+                            {msg.data.files.map((file, i) => (
+                                <div
+                                    key={i}
+                                    onClick={() => api.openFile(file.path)}
+                                    className="flex items-center gap-3 bg-black/20 p-3 rounded-lg hover:bg-black/30 transition-colors cursor-pointer group"
+                                >
+                                    <div className={`w-8 h-8 rounded flex items-center justify-center transition-transform group-hover:scale-110 ${file.type === 'directory' || file.extension === 'DIR'
+                                        ? 'bg-blue-500/20 text-blue-400'
+                                        : 'bg-hva-accent/20 text-hva-accent'
+                                        }`}>
+                                        {file.type === 'directory' || file.extension === 'DIR'
+                                            ? <span className="text-xs font-bold">DIR</span>
+                                            : <span className="text-xs font-bold">{file.extension?.replace('.', '') || 'FILE'}</span>
+                                        }
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium truncate text-white group-hover:text-hva-accent transition-colors">{file.name}</p>
+                                        <p className="text-xs text-hva-muted">{file.size_human} • {file.path}</p>
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate text-white group-hover:text-hva-accent transition-colors">{file.name}</p>
-                                    <p className="text-xs text-hva-muted">{file.size_human} • {file.path}</p>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
-            );
-        }
+                )}
 
-        // Default rich rendering
+                {/* Default rich rendering */}
+                {msg.data && !msg.data.files && (
+                    <div className="space-y-2">
+                        <p className="leading-relaxed">{msg.content}</p>
+                        {msg.data.data && typeof msg.data.data === 'string' && (
+                            <pre className="bg-black/20 p-3 rounded-lg text-xs overflow-x-auto text-hva-muted font-mono">
+                                {msg.data.data}
+                            </pre>
+                        )}
+                    </div>
+                )}
+            </>
+        );
+
         return (
-            <div className="space-y-2">
-                <p className="leading-relaxed">{msg.content}</p>
-                {msg.data.data && typeof msg.data.data === 'string' && (
-                    <pre className="bg-black/20 p-3 rounded-lg text-xs overflow-x-auto text-hva-muted font-mono">
-                        {msg.data.data}
-                    </pre>
+            <div className="flex flex-col gap-2">
+                {content}
+                {msg.model && (
+                    <div className={`self-end text-[10px] px-2 py-0.5 rounded-full border ${getModelBadgeColor(msg.model)} font-medium mt-1`}>
+                        {msg.model}
+                    </div>
                 )}
             </div>
         );

@@ -56,14 +56,15 @@ class DocTools:
                 }
             
             # Summarize using Gemini
-            summary = await self.router.summarize_with_gemini(text, summary_type)
+            summary_result = await self.router.summarize_with_gemini(text, summary_type)
             
             logger.info(f"Summarized file: {file_path}")
             
             return {
                 "file": str(path),
                 "summary_type": summary_type,
-                "summary": summary,
+                "summary": summary_result["content"],
+                "model": summary_result["model"],
                 "word_count": len(text.split())
             }
             
@@ -108,7 +109,7 @@ class DocTools:
                 }
             
             # Translate using Gemini
-            translated = await self.router.translate_with_gemini(text, target_language)
+            translated_result = await self.router.translate_with_gemini(text, target_language)
             
             logger.info(f"Translated file: {file_path} to {target_language}")
             
@@ -116,7 +117,8 @@ class DocTools:
                 "file": str(path),
                 "target_language": target_language,
                 "original_text": text[:200] + "..." if len(text) > 200 else text,
-                "translated_text": translated
+                "translated_text": translated_result["content"],
+                "model": translated_result["model"]
             }
             
         except Exception as e:
@@ -169,14 +171,15 @@ Document 2:
 {text2[:2000]}
 """
             
-            comparison = await self.router.generate_with_gemini(prompt, temperature=0.5)
+            comparison_result = await self.router.generate_with_gemini(prompt, temperature=0.5)
             
             logger.info(f"Compared files: {file1} vs {file2}")
             
             return {
                 "file1": str(path1),
                 "file2": str(path2),
-                "comparison": comparison
+                "comparison": comparison_result["content"],
+                "model": comparison_result["model"]
             }
             
         except Exception as e:
@@ -223,13 +226,14 @@ Document:
 Format as a structured list.
 """
             
-            tasks_text = await self.router.generate_with_gemini(prompt, temperature=0.3)
+            tasks_result = await self.router.generate_with_gemini(prompt, temperature=0.3)
             
             logger.info(f"Extracted tasks from: {file_path}")
             
             return {
                 "file": str(path),
-                "tasks": tasks_text
+                "tasks": tasks_result["content"],
+                "model": tasks_result["model"]
             }
             
         except Exception as e:
