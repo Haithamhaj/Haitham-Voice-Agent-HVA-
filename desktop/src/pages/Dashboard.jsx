@@ -80,14 +80,12 @@ const Dashboard = () => {
                     </div>
                     <h3 className="text-hva-muted font-medium">مواعيد اليوم</h3>
                 </div>
-
-                {/* Usage Widget */}
-                <UsageWidget />
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
-                {/* System Activity - Spans 2 columns */}
-                <div className="col-span-2 bg-hva-card rounded-2xl border border-hva-border-subtle p-6">
+            {/* Middle Row: System Activity + Usage Widget */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* System Activity */}
+                <div className="bg-hva-card rounded-2xl border border-hva-border-subtle p-6">
                     <h2 className="text-xl font-bold text-hva-cream mb-4">نشاط النظام</h2>
                     <div className="space-y-4">
                         <div className="flex items-center gap-4 p-3 rounded-xl bg-hva-primary/50">
@@ -107,12 +105,15 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* File System Tree - Spans 1 column */}
-                <div className="col-span-1">
-                    <FileSystemTree />
-                </div>
+                {/* Usage Widget */}
+                <UsageWidget />
             </div>
-        </div >
+
+            {/* Bottom Row: File System Tree */}
+            <div className="w-full">
+                <FileSystemTree />
+            </div>
+        </div>
     );
 };
 

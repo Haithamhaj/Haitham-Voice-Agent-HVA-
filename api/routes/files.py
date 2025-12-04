@@ -110,3 +110,13 @@ async def get_file_tree(path: str = "~", depth: int = 2):
     from haitham_voice_agent.tools.files import FileTools
     ft = FileTools()
     return await ft.get_file_tree(path, depth)
+
+class OpenFileRequest(BaseModel):
+    path: str
+
+@router.post("/open")
+async def open_file(request: OpenFileRequest):
+    """Open a file using system default app"""
+    from haitham_voice_agent.tools.files import FileTools
+    ft = FileTools()
+    return await ft.open_file(request.path)

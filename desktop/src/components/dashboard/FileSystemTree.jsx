@@ -7,15 +7,23 @@ const TreeNode = ({ node, level = 0, onLoadChildren }) => {
     const [isLoading, setIsLoading] = useState(false);
     const hasChildren = node.type === 'directory'; // Directories might have children
 
-    const handleToggle = async () => {
-        if (!hasChildren) return;
-
-        if (!isOpen && (!node.children || node.children.length === 0)) {
-            setIsLoading(true);
-            await onLoadChildren(node);
-            setIsLoading(false);
+    const handleClick = async () => {
+        if (hasChildren) {
+            // Toggle Directory
+            if (!isOpen && (!node.children || node.children.length === 0)) {
+                setIsLoading(true);
+                await onLoadChildren(node);
+                setIsLoading(false);
+            }
+            setIsOpen(!isOpen);
+        } else {
+            // Open File
+            try {
+                await api.openFile(node.path);
+            } catch (error) {
+                console.error("Failed to open file:", error);
+            }
         }
-        setIsOpen(!isOpen);
     };
 
     const getIcon = () => {
@@ -28,7 +36,7 @@ const TreeNode = ({ node, level = 0, onLoadChildren }) => {
             <div
                 className={`flex items-center gap-2 py-1 px-2 hover:bg-white/5 rounded cursor-pointer transition-colors ${level === 0 ? 'font-bold text-hva-cream' : 'text-hva-muted text-sm'}`}
                 style={{ paddingRight: `${level * 12}px` }} // RTL indentation
-                onClick={handleToggle}
+                onClick={handleClick}
             >
                 {hasChildren && (
                     <span className="text-hva-muted">

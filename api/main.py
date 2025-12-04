@@ -64,7 +64,7 @@ app.include_router(gmail.router)
 app.include_router(calendar.router)
 app.include_router(tasks.router)
 app.include_router(system.router)
-app.include_router(files.router)
+app.include_router(files.router, prefix="/files", tags=["files"])
 app.include_router(usage.router)
 
 if __name__ == "__main__":
