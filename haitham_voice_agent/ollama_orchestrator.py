@@ -48,7 +48,7 @@ VALID INTENTS:
 - open_folder: افتح مجلد، open folder
 - open_app: افتح برنامج، شغل تطبيق، open app، launch
 - show_files: اعرض الملفات، list files (params: path, sort_by [date, size, name])
-- organize_documents: نظم الملفات، رتب المستندات، organize documents (params: path)
+- organize_documents: نظم الملفات، رتب المستندات، organize documents, organize document, clean up folder, نظم مجلد
 - morning_briefing: صباح الخير، good morning (triggers daily briefing)
 - work_mode: وضع العمل، work mode
 - meeting_mode: وضع الاجتماع، meeting mode
