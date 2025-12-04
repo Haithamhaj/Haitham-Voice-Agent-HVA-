@@ -116,6 +116,7 @@ globs:
 ## 📝 Recent Changes
 
 | Date | Type | Description | Files |
+| 2025-12-04 11:58 | NEW_FEATURE_FLOW | Implemented Smart Downloads Organizer. Added 72h cleanup rule and content-based categorization (LLM) with subfolder support (Category/Subcategory). | haitham_voice_agent/tools/smart_organizer.py |
 | 2025-12-04 11:34 | NEW_FEATURE_FLOW | Implemented Smart Content Extraction. Added ContentExtractor and SmartSummarizer (Qwen/Gemini). Updated MemorySystem to ingest full content and generate summaries. Fixed VectorStore query syntax. | haitham_voice_agent/intelligence/content_extractor.py, haitham_voice_agent/intelligence/smart_summarizer.py, haitham_voice_agent/tools/memory/memory_system.py |
 | 2025-12-04 11:00 | NEW_FEATURE_FLOW | Implemented Auto-Index Critical Project Files. Added GraphStore, FileRouter, and extended ProjectRegistry. Created api/routes/files.py for scanning endpoints. | haitham_voice_agent/tools/projects.py, haitham_voice_agent/tools/memory/storage/graph_store.py, haitham_voice_agent/intelligence/file_router.py |
 | 2025-12-04 10:06 | NEW_FEATURE_FLOW | Implemented Project Registry and File Index. Created projects.py, updated memory_system.py with file indexing, and integrated files.py to auto-index moved files. | haitham_voice_agent/tools/projects.py, haitham_voice_agent/tools/memory/memory_system.py, haitham_voice_agent/tools/memory/storage/sqlite_store.py |
