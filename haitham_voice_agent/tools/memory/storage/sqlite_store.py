@@ -68,8 +68,81 @@ class SQLiteStore:
             await db.execute("CREATE INDEX IF NOT EXISTS idx_type ON memories(type)")
             await db.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON memories(timestamp)")
             
+            # Create File Index Table
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS file_index (
+                    path TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL,
+                    description TEXT,
+                    tags TEXT, -- JSON list
+                    last_modified TEXT,
+                    embedding_id TEXT
+                )
+            """)
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_file_project ON file_index(project_id)")
+            
             await db.commit()
             logger.info("SQLite schema initialized")
+
+    async def index_file(self, path: str, project_id: str, description: str = "", tags: List[str] = None, embedding_id: str = None) -> bool:
+        """Index a file"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("""
+                    INSERT OR REPLACE INTO file_index (path, project_id, description, tags, last_modified, embedding_id)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    path, 
+                    project_id, 
+                    description, 
+                    json.dumps(tags or []), 
+                    datetime.now().isoformat(), 
+                    embedding_id
+                ))
+                await db.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to index file {path}: {e}")
+            return False
+
+    async def get_file_index(self, path: str) -> Optional[Dict[str, Any]]:
+        """Get file index entry"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.execute("SELECT * FROM file_index WHERE path = ?", (path,)) as cursor:
+                    row = await cursor.fetchone()
+                    if row:
+                        data = dict(row)
+                        if data["tags"]:
+                            data["tags"] = json.loads(data["tags"])
+                        return data
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get file index {path}: {e}")
+            return None
+
+    async def search_file_index(self, query_text: str) -> List[Dict[str, Any]]:
+        """Search file index by description or tags"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                search_term = f"%{query_text}%"
+                async with db.execute("""
+                    SELECT * FROM file_index 
+                    WHERE description LIKE ? OR tags LIKE ? OR path LIKE ?
+                """, (search_term, search_term, search_term)) as cursor:
+                    rows = await cursor.fetchall()
+                    results = []
+                    for row in rows:
+                        data = dict(row)
+                        if data["tags"]:
+                            data["tags"] = json.loads(data["tags"])
+                        results.append(data)
+                    return results
+        except Exception as e:
+            logger.error(f"Failed to search file index: {e}")
+            return []
 
     async def save_memory(self, memory: Memory) -> bool:
         """Save or update memory"""

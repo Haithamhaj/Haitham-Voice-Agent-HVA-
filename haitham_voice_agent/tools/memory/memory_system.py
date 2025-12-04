@@ -159,3 +159,76 @@ class MemorySystem:
         except Exception as e:
             logger.error(f"Failed to delete memory {memory_id}: {e}")
             return False
+
+    async def index_file(self, path: str, project_id: str, description: str = "", tags: List[str] = None) -> bool:
+        """
+        Index a file in the memory system.
+        Generates an embedding for the description/content to allow semantic search.
+        """
+        try:
+            # Generate embedding for description + tags
+            content_to_embed = f"{description} {' '.join(tags or [])}"
+            embedding = await self.embedding_generator.generate(content_to_embed)
+            
+            # Store embedding in Vector Store (using path as ID, or a hash)
+            # Using path as ID might be tricky if path changes, but for now it's the PK
+            # Let's use a deterministic hash of the path as the vector ID
+            import hashlib
+            vector_id = hashlib.md5(path.encode()).hexdigest()
+            
+            metadata = {
+                "type": "file",
+                "project": project_id,
+                "path": path,
+                "timestamp": datetime.now().isoformat()
+            }
+            self.vector_store.add_embedding(vector_id, embedding, metadata)
+            
+            # Store in SQLite File Index
+            return await self.sqlite_store.index_file(path, project_id, description, tags, vector_id)
+            
+        except Exception as e:
+            logger.error(f"Failed to index file {path}: {e}")
+            return False
+
+    async def search_files(self, query: str, project_id: Optional[str] = None, limit: int = 5) -> List[Dict[str, Any]]:
+        """
+        Search for files using semantic search + text match
+        """
+        try:
+            # 1. Semantic Search via Vector Store
+            query_embedding = await self.embedding_generator.generate(query)
+            filter_criteria = {"type": "file"}
+            if project_id:
+                filter_criteria["project"] = project_id
+                
+            vector_results = self.vector_store.search(query_embedding, limit=limit, filter_criteria=filter_criteria)
+            
+            # 2. Retrieve details from SQLite File Index
+            results = []
+            seen_paths = set()
+            
+            # Add vector results
+            for res in vector_results:
+                path = res["metadata"].get("path")
+                if path and path not in seen_paths:
+                    file_data = await self.sqlite_store.get_file_index(path)
+                    if file_data:
+                        file_data["score"] = res["score"]
+                        results.append(file_data)
+                        seen_paths.add(path)
+            
+            # 3. Fallback/Augment with Text Search (if few results)
+            if len(results) < limit:
+                text_results = await self.sqlite_store.search_file_index(query)
+                for res in text_results:
+                    if res["path"] not in seen_paths:
+                        res["score"] = 0.5 # Arbitrary score for text match
+                        results.append(res)
+                        seen_paths.add(res["path"])
+                        
+            return results[:limit]
+            
+        except Exception as e:
+            logger.error(f"File search failed: {e}")
+            return []

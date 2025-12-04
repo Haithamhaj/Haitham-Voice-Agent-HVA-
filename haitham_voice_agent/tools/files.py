@@ -345,6 +345,42 @@ class FileTools:
             shutil.move(str(src_path), str(dest_path))
             logger.info(f"Moved file: {src_path} -> {dest_path}")
             
+            # --- Memory Integration ---
+            try:
+                from haitham_voice_agent.tools.workspace_manager import workspace_manager
+                from haitham_voice_agent.tools.memory.voice_tools import VoiceMemoryTools
+                
+                # Check if destination is within a project
+                projects_root = workspace_manager.projects_root
+                if str(dest_path).startswith(str(projects_root)):
+                    # Extract project ID
+                    rel_path = dest_path.relative_to(projects_root)
+                    project_id = rel_path.parts[0]
+                    
+                    # Index the file
+                    memory_tools = VoiceMemoryTools()
+                    await memory_tools.ensure_initialized()
+                    
+                    # Index with basic description
+                    await memory_tools.memory_system.index_file(
+                        path=str(dest_path),
+                        project_id=project_id,
+                        description=f"File moved to project {project_id}",
+                        tags=["file", "moved", dest_path.suffix]
+                    )
+                    
+                    # Add Memory Note
+                    await memory_tools.memory_system.add_memory(
+                        content=f"Moved file '{src_path.name}' to project '{project_id}'. New location: {dest_path}",
+                        source="system",
+                        context=f"File Organization: {project_id}"
+                    )
+                    logger.info(f"Indexed file move to project: {project_id}")
+                    
+            except Exception as mem_err:
+                logger.warning(f"Memory integration failed during move: {mem_err}")
+            # --------------------------
+            
             return {
                 "status": "moved",
                 "source": str(src_path),
