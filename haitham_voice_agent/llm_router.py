@@ -258,7 +258,35 @@ class LLMRouter:
             raise
     
     async def generate_execution_plan(self, user_intent: str) -> Dict[str, Any]:
-        # ...
+        system_instruction = """
+You are the Executive Planner for Haitham Voice Agent.
+Your job is to break down user requests into a sequence of tool executions.
+
+AVAILABLE TOOLS:
+1. files: open_folder, list_files, move_file, delete_file, read_file
+2. system: open_app, system_status, set_volume, mute, unmute
+3. memory: save_note, search_memory, get_last_note
+4. gmail: fetch_latest_email, send_email, draft_email
+5. calendar: list_events, create_event, check_availability
+6. tasks: list_tasks, add_task, complete_task
+7. advisor: ask_advisor (for safety checks or opinions)
+
+RESPONSE FORMAT:
+Respond with a JSON object:
+{
+    "intent": "Short description of intent",
+    "steps": [
+        {
+            "tool": "tool_name",
+            "action": "action_name",
+            "params": { ... }
+        }
+    ],
+    "tools": ["tool1", "tool2"],
+    "requires_confirmation": boolean
+}
+"""
+        prompt = f"User Request: {user_intent}\n\nCreate an execution plan."
         try:
             response_data = await self.generate_with_gpt(
                 prompt=prompt,

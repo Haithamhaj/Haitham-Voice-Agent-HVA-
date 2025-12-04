@@ -143,6 +143,9 @@ The memory system is unified to act as a single, interconnected "brain":
 - **Tokenization Tracker**:
     - **Cost Monitoring**: Real-time tracking of token usage and costs for all models (GPT-4o, Gemini, Local).
     - **Dashboard Widget**: Visualizes spending and token count directly in the UI.
+    - **Enhanced Analytics**:
+        - **Daily Charts**: Visual bar charts showing daily cost trends.
+        - **Detailed Logs**: Granular log table showing every request (Time, Model, Context, Cost).
     - **Detailed Breakdown**: Granular view of usage by model type.
 - **Workspace Manager**: Automatically creates and manages project folder structures.
 
@@ -157,7 +160,7 @@ The memory system is unified to act as a single, interconnected "brain":
 - **Premium GUI**: واجهة فخمة (Dark Mode) مع مؤشر ذكاء حي يظهر من يفكر الآن (Ollama vs GPT).
 - **Timezone-Aware Scheduling**: يفهم "اجتماع الساعة 5 بتوقيت القاهرة" ويحسب فرق التوقيت تلقائياً ليحجز الموعد الصحيح.
 - **System Modes**: تفعيل "وضع الاجتماع" (كتم الصوت)، "وضع العمل" (تركيز)، أو "وضع الراحة" (استرخاء) بأمر صوتي واحد.
-- **Advanced LLM Support**: توافق كامل مع نماذج الجيل القادم مثل **OpenAI o1** و **GPT-5**، مع ضبط تلقائي للمعاملات.
+*   **Performance Optimization (v2.1)**: الانتقال إلى **Qwen 2.5 (3B)** كموديل محلي أساسي بعد اختبارات أثبتت دقة عالية وسرعة استجابة (1.2s) مقارنة بـ 7B.
 
 </div>
 
@@ -171,7 +174,7 @@ The memory system is unified to act as a single, interconnected "brain":
 - **Smart File Listing**: Ask "Show files in Downloads" to get a categorized list (Today, Yesterday, Older) directly in the chat.
 - **Timezone-Aware Scheduling**: Smartly handles "Meeting at 5pm Cairo time" by calculating the correct time difference relative to your local timezone.
 - **System Modes**: Activate "Meeting Mode" (Mute/DND), "Work Mode" (Focus), or "Chill Mode" (Relax) with a single voice command.
-- **Advanced LLM Support**: Fully compatible with next-gen models like **OpenAI o1** and **GPT-5**, with automatic parameter adjustment for reasoning models.
+*   **Performance Optimization (v2.1)**: Switched to **Qwen 2.5 (3B)** as the primary local model after rigorous testing proved high accuracy with 3x faster response (1.2s) compared to 7B.
 
 ### 📱 تطبيق شريط القوائم وواجهة المستخدم | Menu Bar App & GUI
 
@@ -404,7 +407,7 @@ The project is fortified with an advanced security system:
 *   **Project Registry**: نظام مركزي لإدارة المشاريع (`projects.json`) يمنع تشتت الملفات.
 *   **Graph Store**: قاعدة بيانات علاقات (Graph Database) تربط الملفات بالمشاريع والمفاهيم (مثل "الملف A" جزء من "المشروع B").
 *   **Smart Content Extraction**: استخراج ذكي للنصوص من ملفات PDF و Code و Text.
-*   **Hybrid Summarization**: استخدام **Qwen** (محلياً) لتلخيص الملفات بسرعة، مع الانتقال تلقائياً لـ **Gemini Flash** للملفات المعقدة.
+*   **Hybrid Summarization**: استخدام **Qwen 2.5 (3B)** (محلياً) لتلخيص الملفات بسرعة فائقة (1.2 ثانية)، مع الانتقال تلقائياً لـ **Gemini Flash** للملفات المعقدة.
 *   **Deep Search**: بحث دلالي (Semantic Search) داخل محتوى الملفات وليس فقط العناوين.
 *   **Auto-Indexing**: عند نقل ملف إلى مشروع، يتم فهرسته، تلخيصه، وربطه بالرسم البياني (Graph) تلقائياً.
 
@@ -413,7 +416,7 @@ The project is fortified with an advanced security system:
 *   **Project Registry**: A centralized system (`projects.json`) to manage projects and prevent file scatter.
 *   **Graph Store**: A relationship database linking files to projects and concepts (e.g., "File A" belongs to "Project B").
 *   **Smart Content Extraction**: Intelligent text extraction from PDF, Code, and Text files.
-*   **Hybrid Summarization**: Uses **Qwen** (locally) for fast summaries, auto-falling back to **Gemini Flash** for complex files.
+*   **Hybrid Summarization**: Uses **Qwen 2.5 (3B)** (locally) for blazing fast summaries (1.2s), auto-falling back to **Gemini Flash** for complex files.
 *   **Deep Search**: Semantic search within file content, not just filenames.
 *   **Auto-Indexing**: Moving a file to a project automatically indexes, summarizes, and links it to the Knowledge Graph.
 

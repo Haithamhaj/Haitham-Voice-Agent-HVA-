@@ -241,6 +241,23 @@ const ChatView = () => {
         );
     };
 
+    const textareaRef = useRef(null);
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
+        }
+    }, [input]);
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend(e);
+        }
+    };
+
     return (
         <div className="flex flex-col h-full space-y-4">
             <header>
@@ -296,7 +313,7 @@ const ChatView = () => {
                 </div>
 
                 <div className="p-4 bg-hva-primary/30 border-t border-hva-border-subtle">
-                    <form onSubmit={handleSend} className="flex gap-3 items-center">
+                    <form onSubmit={handleSend} className="flex gap-3 items-end">
                         <button
                             type="button"
                             onClick={handleVoiceToggle}
@@ -309,14 +326,16 @@ const ChatView = () => {
                             {isListening ? <MicOff size={20} /> : <Mic size={20} />}
                         </button>
 
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRef}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder={isListening ? "تحدث الآن..." : "اكتب رسالتك هنا..."}
-                            className="flex-1 bg-hva-card border border-hva-border-subtle rounded-xl px-4 py-3 text-hva-cream focus:outline-none focus:border-hva-accent transition-colors disabled:opacity-50"
+                            onKeyDown={handleKeyDown}
+                            placeholder={isListening ? "تحدث الآن..." : "اكتب رسالتك هنا... (Shift+Enter لسطر جديد)"}
+                            className="flex-1 bg-hva-card border border-hva-border-subtle rounded-xl px-4 py-3 text-hva-cream focus:outline-none focus:border-hva-accent transition-colors disabled:opacity-50 resize-none max-h-[200px] overflow-y-auto min-h-[50px]"
                             dir="rtl"
                             disabled={isListening}
+                            rows={1}
                         />
                         <button
                             type="submit"

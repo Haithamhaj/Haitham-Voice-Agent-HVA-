@@ -31,7 +31,7 @@ YOUR JOB: Classify user requests and respond with JSON ONLY.
 RULE 1: ANSWER DIRECTLY (type: direct_response)
 ═══════════════════════════════════════════════════════════
 When request is:
-- Greetings: مرحبا، صباح الخير، كيف حالك، hello، hi، شكراً، مع السلامة
+- Greetings: مرحبا، كيف حالك، hello، hi، شكراً، مع السلامة
 - Simple questions: ما هو X؟، اشرح لي Y، what is Z?
 - Calculations: كم 5+3؟، what is 20% of 100?
 - General knowledge: questions you can answer from your knowledge

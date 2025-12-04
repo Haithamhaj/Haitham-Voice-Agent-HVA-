@@ -262,6 +262,40 @@ class FileTools:
         except Exception as e:
             return {"error": True, "message": str(e)}
 
+    async def read_file(self, path: str, max_length: int = 5000) -> Dict[str, Any]:
+        """Read content of a text file (Sandboxed)"""
+        try:
+            target_path = self._validate_path(path)
+            if not target_path:
+                return {"error": True, "message": "Access denied or invalid path"}
+            
+            if not target_path.exists():
+                return {"error": True, "message": "File not found"}
+                
+            if not target_path.is_file():
+                return {"error": True, "message": "Not a file"}
+                
+            # Check size
+            if target_path.stat().st_size > 10 * 1024 * 1024: # 10MB limit
+                return {"error": True, "message": "File too large to read directly"}
+
+            content = ""
+            with open(target_path, 'r', encoding='utf-8', errors='replace') as f:
+                content = f.read(max_length)
+                
+            if len(content) == max_length:
+                content += "\n... (truncated)"
+                
+            return {
+                "status": "read",
+                "path": str(target_path),
+                "content": content,
+                "length": len(content)
+            }
+            
+        except Exception as e:
+            return {"error": True, "message": str(e)}
+
     def _get_file_info(self, file_path: Path) -> Dict[str, Any]:
         """Get file metadata"""
         try:
