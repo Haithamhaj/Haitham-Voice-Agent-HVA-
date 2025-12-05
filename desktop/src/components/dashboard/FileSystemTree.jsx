@@ -98,6 +98,9 @@ const FileSystemTree = () => {
 
     useEffect(() => {
         loadRoot();
+        // Auto-refresh every 10 seconds to keep in sync with "Smart Sync"
+        const interval = setInterval(loadRoot, 10000);
+        return () => clearInterval(interval);
     }, []);
 
     const handleLoadChildren = async (parentNode) => {

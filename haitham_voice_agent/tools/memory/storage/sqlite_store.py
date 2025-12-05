@@ -325,6 +325,17 @@ class SQLiteStore:
             logger.error(f"Failed to delete memory {memory_id}: {e}")
             return False
 
+    async def count_memories(self) -> int:
+        """Count total memories"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                async with db.execute("SELECT COUNT(*) FROM memories") as cursor:
+                    row = await cursor.fetchone()
+                    return row[0] if row else 0
+        except Exception as e:
+            logger.error(f"Failed to count memories: {e}")
+            return 0
+
     async def get_stale_items(self, days: int = 3) -> List[Memory]:
         """
         Get active projects that haven't been updated in 'days'

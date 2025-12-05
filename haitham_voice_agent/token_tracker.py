@@ -54,6 +54,8 @@ class TokenTracker:
             "gemini-1.5-pro": {"input": 0.0035, "output": 0.0105},
             "gemini-1.5-flash": {"input": 0.000075, "output": 0.0003},
             "gemini-2.0-flash": {"input": 0.0001, "output": 0.0004},
+            "gemini-2.5-pro": {"input": 0.0035, "output": 0.0105},
+            "gemini-pro": {"input": 0.0035, "output": 0.0105},
             "qwen": {"input": 0.0, "output": 0.0},
             "llama3": {"input": 0.0, "output": 0.0},
             "mistral": {"input": 0.0, "output": 0.0},

@@ -92,3 +92,14 @@ class GraphStore:
         except Exception as e:
             logger.error(f"Failed to get relations for {node_id}: {e}")
             return []
+
+    async def count_nodes(self) -> int:
+        """Count total graph nodes"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                async with db.execute("SELECT COUNT(*) FROM graph_nodes") as cursor:
+                    row = await cursor.fetchone()
+                    return row[0] if row else 0
+        except Exception as e:
+            logger.error(f"Failed to count graph nodes: {e}")
+            return 0

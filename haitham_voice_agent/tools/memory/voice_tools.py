@@ -20,6 +20,11 @@ class VoiceMemoryTools:
             await self.memory_system.initialize()
             self._initialized = True
             
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get memory stats"""
+        await self.ensure_initialized()
+        return await self.memory_system.get_stats()
+            
     async def process_voice_note(self, audio_text: str = None, note: str = None, content: str = None) -> Dict[str, Any]:
         """
         Process a raw voice note and save it as a memory AND a local Markdown file.

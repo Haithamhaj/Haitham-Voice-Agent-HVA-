@@ -110,3 +110,11 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Failed to delete embedding: {e}")
             return False
+
+    def count(self) -> int:
+        """Count total embeddings"""
+        try:
+            return self.collection.count()
+        except Exception as e:
+            logger.error(f"Failed to count embeddings: {e}")
+            return 0

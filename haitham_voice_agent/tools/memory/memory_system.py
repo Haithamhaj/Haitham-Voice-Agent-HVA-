@@ -35,6 +35,37 @@ class MemorySystem:
         await self.sqlite_store.initialize()
         await self.graph_store.initialize()
 
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get statistics from all memory stores"""
+        try:
+            # SQLite Stats
+            sql_count = 0
+            if hasattr(self.sqlite_store, "count_memories"):
+                sql_count = await self.sqlite_store.count_memories()
+            elif hasattr(self.sqlite_store, "get_stats"):
+                s = await self.sqlite_store.get_stats()
+                sql_count = s.get("count", 0)
+                
+            # Vector Stats
+            vec_count = 0
+            if hasattr(self.vector_store, "count"):
+                vec_count = self.vector_store.count()
+                
+            # Graph Stats
+            graph_count = 0
+            if hasattr(self.graph_store, "count_nodes"):
+                graph_count = await self.graph_store.count_nodes()
+                
+            return {
+                "sql_records": sql_count,
+                "vector_embeddings": vec_count,
+                "graph_nodes": graph_count,
+                "status": "active"
+            }
+        except Exception as e:
+            logger.error(f"Failed to get stats: {e}")
+            return {"error": str(e), "status": "error"}
+
     # ... (existing methods) ...
 
     async def suggest_file_project(self, path: str) -> Optional[Dict[str, Any]]:
