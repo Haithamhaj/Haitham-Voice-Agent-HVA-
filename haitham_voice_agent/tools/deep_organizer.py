@@ -73,21 +73,19 @@ class DeepOrganizer:
                 files_to_process.append((file_path, root_path))
                 
         # Limit total files to prevent massive bills/timeouts
-        MAX_FILES = 20
+        MAX_FILES = 50 # Increased limit due to batching efficiency
         if len(files_to_process) > MAX_FILES:
             logger.warning(f"Too many files ({len(files_to_process)}). Limiting to {MAX_FILES}.")
             files_to_process = files_to_process[:MAX_FILES]
             
-        # Process in parallel with semaphore
-        import asyncio
-        semaphore = asyncio.Semaphore(5) # Max 5 concurrent GPT calls
+        # Batch Processing
+        BATCH_SIZE = 5
+        batches = [files_to_process[i:i + BATCH_SIZE] for i in range(0, len(files_to_process), BATCH_SIZE)]
         
-        async def analyze_with_limit(fp, rp):
-            async with semaphore:
-                return await self._analyze_file(fp, rp)
-        
-        tasks = [analyze_with_limit(fp, rp) for fp, rp in files_to_process]
-        results = await asyncio.gather(*tasks)
+        results = []
+        for batch in batches:
+            batch_results = await self._analyze_batch(batch)
+            results.extend(batch_results)
         
         for change in results:
             plan["scanned"] += 1
@@ -132,11 +130,82 @@ class DeepOrganizer:
                     # Should not happen if check returns false, but safe fallback
                     return None
 
+            # --- LOCAL FIRST (Gatekeeper) ---
+            # Check for obvious patterns (Regex/Keywords)
+            local_result = self._local_categorization(file_path, root_path)
+            if local_result:
+                await manager.broadcast({
+                    "type": "task_progress",
+                    "task": "Deep Organize",
+                    "status": "local_rule",
+                    "file": file_path.name,
+                    "details": f"Local Rule: {local_result['category']}"
+                })
+                return local_result
+            # --------------------------------
+
             # Extract text
             text = content_extractor.extract_text(str(file_path))
             if not text or len(text) < 50:
                 return None # Skip empty/unreadable files
                 
+            # --- ADAPTIVE LEARNING (Mimicry) ---
+            # Search for similar files to see where they live
+            try:
+                from haitham_voice_agent.tools.memory.voice_tools import VoiceMemoryTools
+                mem_tools = VoiceMemoryTools()
+                await mem_tools.ensure_initialized()
+                
+                # Search for similar files using vector search
+                similar_files = await mem_tools.memory_system.search_file_index(text[:1000]) # Search by content snippet
+                
+                best_match = None
+                for match in similar_files:
+                    # Check if match is in a target category folder (not Downloads/Desktop)
+                    match_path = Path(match['path'])
+                    if "Documents" in match_path.parts or "Projects" in match_path.parts:
+                        # Found a good example!
+                        best_match = match_path
+                        break
+                        
+                if best_match:
+                    # We found a similar file in a good place. Let's mimic it!
+                    # Extract category path relative to Documents or Projects
+                    # Heuristic: If in Documents/Financials/2024, suggest Financials/2024
+                    
+                    mimic_category = None
+                    parts = best_match.parts
+                    if "Documents" in parts:
+                        idx = parts.index("Documents")
+                        if idx + 1 < len(parts) - 1: # Ensure there is a subfolder and filename
+                            mimic_category = "/".join(parts[idx+1:-1])
+                            
+                    if mimic_category:
+                        await manager.broadcast({
+                            "type": "task_progress",
+                            "task": "Deep Organize",
+                            "status": "mimicking",
+                            "file": file_path.name,
+                            "details": f"Mimicking {best_match.name} -> {mimic_category}"
+                        })
+                        
+                        # Return mimic result without LLM cost!
+                        return {
+                            "original_path": str(file_path),
+                            "proposed_path": str(root_path / mimic_category / file_path.name),
+                            "new_filename": file_path.name, # Keep name or ask LLM just to rename? Let's keep name for zero cost.
+                            "category": mimic_category,
+                            "reason": f"Adaptive Learning: Mimicked placement of similar file '{best_match.name}'",
+                            "usage": {
+                                "cost": 0.0,
+                                "input_tokens": 0,
+                                "output_tokens": 0
+                            }
+                        }
+            except Exception as e:
+                logger.warning(f"Adaptive Learning failed: {e}")
+            # -----------------------------------
+
             # Step 1: Summarize with Gemini (Cost efficient & fast)
             await manager.broadcast({"type": "log", "message": f"🧠 Gemini: Summarizing {file_path.name}..."})
             summary_result = await self.llm_router.summarize_with_gemini(text, summary_type="brief")
@@ -242,6 +311,175 @@ class DeepOrganizer:
         except Exception as e:
             logger.warning(f"Failed to analyze {file_path.name}: {e}")
             return None
+
+    async def _analyze_batch(self, files: List[tuple[Path, Path]]) -> List[Dict[str, Any]]:
+        """Analyze a batch of files in one LLM call"""
+        results = []
+        batch_summary = []
+        
+        # 1. Prepare Batch
+        for file_path, root_path in files:
+            try:
+                # Check Guard
+                from haitham_voice_agent.intelligence.optimization_guard import get_optimization_guard
+                guard = get_optimization_guard()
+                guard_check = await guard.check_file(str(file_path), context="deep_organize")
+                
+                if not guard_check["should_process"]:
+                    # Cache Hit
+                    if guard_check.get("cached_result"):
+                        results.append(guard_check["cached_result"])
+                    continue
+                    
+                # Extract
+                text = content_extractor.extract_text(str(file_path))
+                if not text or len(text) < 50:
+                    continue
+                    
+                # Summarize (Gemini Flash is cheap, do individual summaries for better context)
+                # Or skip summary and send truncated text directly in batch?
+                # Let's send truncated text (Smart Truncation) to save calls.
+                truncated_text = text[:2000] + "\n...\n" + text[-500:] if len(text) > 2500 else text
+                
+                batch_summary.append({
+                    "filename": file_path.name,
+                    "content_snippet": truncated_text,
+                    "original_path": str(file_path),
+                    "root_path": str(root_path),
+                    "file_hash": guard_check.get("file_hash")
+                })
+                
+            except Exception as e:
+                logger.warning(f"Batch prep failed for {file_path.name}: {e}")
+                
+        if not batch_summary:
+            return results
+            
+        # 2. Batch Prompt
+        prompt = """
+        Analyze the following list of files and propose a new filename and folder structure for EACH.
+        
+        Rules:
+        1. Rename: Snake_case, descriptive.
+        2. Reorganize: Category/Subcategory.
+        3. Context: Personal vs Work.
+        
+        Files:
+        """
+        
+        for item in batch_summary:
+            prompt += f"\n--- FILE: {item['filename']} ---\n{item['content_snippet']}\n"
+            
+        prompt += """
+        
+        Return JSON List:
+        [
+            {
+                "original_filename": "...",
+                "new_filename": "...",
+                "category_path": "...",
+                "reason": "..."
+            }
+        ]
+        """
+        
+        # 3. Call LLM (GPT-4o or Gemini Pro)
+        try:
+            response = await self.llm_router.generate_with_gpt(
+                prompt,
+                temperature=0.2,
+                response_format="json_object" # GPT-4o supports schema, but let's use object and expect list in key
+            )
+            
+            # Parse
+            import json
+            content = json.loads(response["content"])
+            # Handle if it returns dict with key "files" or just list
+            items = content if isinstance(content, list) else content.get("files", content.get("results", []))
+            
+            # Map back to results
+            for item in items:
+                # Find matching source
+                source = next((x for x in batch_summary if x["filename"] == item.get("original_filename")), None)
+                if not source:
+                    continue
+                    
+                new_filename = item.get("new_filename")
+                category_path = item.get("category_path")
+                
+                if not new_filename or not category_path:
+                    continue
+                    
+                if not new_filename.endswith(Path(source["original_filename"]).suffix.lower()):
+                    new_filename += Path(source["original_filename"]).suffix.lower()
+                    
+                proposed_path = Path(source["root_path"]) / category_path / new_filename
+                
+                # Usage split (approximate)
+                total_cost = response["usage"].get("cost", 0.0) / len(items)
+                
+                result_entry = {
+                    "original_path": source["original_path"],
+                    "proposed_path": str(proposed_path),
+                    "new_filename": new_filename,
+                    "category": category_path,
+                    "reason": item.get("reason"),
+                    "usage": {
+                        "cost": total_cost,
+                        "gpt_cost": total_cost
+                    }
+                }
+                
+                results.append(result_entry)
+                
+                # Save to Guard
+                if source["file_hash"]:
+                    await guard.save_result(
+                        file_hash=source["file_hash"],
+                        context="deep_organize",
+                        result=result_entry,
+                        cost_saved=0.0
+                    )
+                    
+        except Exception as e:
+            logger.error(f"Batch LLM call failed: {e}")
+            
+        return results
+
+    def _local_categorization(self, file_path: Path, root_path: Path) -> Optional[Dict[str, Any]]:
+        """
+        Local First: Categorize based on filename keywords/regex.
+        Zero cost, instant.
+        """
+        name = file_path.name.lower()
+        category = None
+        
+        # Rules
+        if "screenshot" in name or "screen shot" in name:
+            category = "Images/Screenshots"
+        elif "invoice" in name or "receipt" in name or "bill" in name:
+            category = "Financials/Invoices"
+        elif "contract" in name or "agreement" in name or "nda" in name:
+            category = "Legal/Contracts"
+        elif "resume" in name or "cv" in name:
+            category = "Personal/Career"
+        elif "statement" in name and ("bank" in name or "card" in name):
+            category = "Financials/Statements"
+            
+        if category:
+            return {
+                "original_path": str(file_path),
+                "proposed_path": str(root_path / category / file_path.name),
+                "new_filename": file_path.name, # Keep original name for local rules
+                "category": category,
+                "reason": f"Local Rule: Filename contains keyword matching '{category}'",
+                "usage": {
+                    "cost": 0.0,
+                    "input_tokens": 0,
+                    "output_tokens": 0
+                }
+            }
+        return None
 
     async def execute_plan(self, plan: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the approved plan"""

@@ -64,12 +64,12 @@ class SmartOrganizer:
                 age_seconds = now.timestamp() - stat.st_mtime
                 
                 if age_seconds > cutoff_seconds:
-                    if item.is_file():
+                    # Treat .app as file for processing
+                    if item.is_file() or item.suffix == '.app':
                         await self._process_file(item, report)
-                    elif item.is_dir() and not item.name in self.CATEGORIES:
-                         # Also move folders if they are old, but maybe treat differently?
-                         # For now, let's focus on files as requested.
-                         pass
+                    elif item.is_dir() and item.name not in self.CATEGORIES:
+                         # Move folders to Documents/Folders
+                         await self._process_folder(item, report)
                          
             except Exception as e:
                 logger.error(f"Error checking file {item.name}: {e}")
@@ -174,6 +174,28 @@ class SmartOrganizer:
             logger.error(f"Failed to process {item.name}: {e}")
             report["errors"].append(f"{item.name}: {str(e)}")
 
+    async def _process_folder(self, item: Path, report: Dict[str, Any]):
+        """Process a folder: Move to Documents/Folders"""
+        try:
+            dest_root = self.documents / "Folders"
+            dest_root.mkdir(parents=True, exist_ok=True)
+            
+            dest_path = dest_root / item.name
+            
+            if dest_path.exists():
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                dest_path = dest_root / f"{item.name}_{timestamp}"
+                
+            shutil.move(str(item), str(dest_path))
+            logger.info(f"Moved Folder {item.name} -> {dest_path}")
+            
+            report["total_moved"] += 1
+            report["categories"]["Folders"] = report["categories"].get("Folders", 0) + 1
+            
+        except Exception as e:
+            logger.error(f"Failed to move folder {item.name}: {e}")
+            report["errors"].append(f"{item.name}: {str(e)}")
+
     def organize_downloads(self) -> Dict[str, Any]:
         """
         Legacy: Organize files in Downloads folder into categories (Extension based).
@@ -218,6 +240,12 @@ class SmartOrganizer:
         
         return report
 
+    def _get_category(self, file_path: Path) -> str:
+        """Determine category based on file extension"""
+        suffix = file_path.suffix.lower()
+        for cat, extensions in self.CATEGORIES.items():
+            if suffix in extensions:
+                return cat
         return None
 
 from haitham_voice_agent.intelligence.content_extractor import content_extractor

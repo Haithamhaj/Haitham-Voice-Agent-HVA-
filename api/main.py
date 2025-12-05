@@ -28,8 +28,15 @@ from haitham_voice_agent.tools.memory.memory_system import memory_system
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("Initializing Memory System...")
-    await memory_system.initialize()
+    logger.info("Starting HVA API...")
+    # Initialize tools
+    from haitham_voice_agent.tools.memory.voice_tools import VoiceMemoryTools
+    await VoiceMemoryTools().ensure_initialized()
+    
+    # Start Adaptive Sync (Background)
+    from haitham_voice_agent.intelligence.adaptive_sync import AdaptiveSync
+    import asyncio
+    asyncio.create_task(AdaptiveSync().sync_knowledge_base())
     logger.info("Memory System Initialized")
 
 @app.get("/")

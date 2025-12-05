@@ -317,41 +317,25 @@ class LLMRouter:
     
     async def generate_execution_plan(self, user_intent: str) -> Dict[str, Any]:
         system_instruction = """
-You are the Executive Planner for Haitham Voice Agent.
-Your job is to break down user requests into a sequence of tool executions.
+You are the HVA Planner. Break requests into tool steps.
 
-AVAILABLE TOOLS:
-1. files: 
-        - open_file(path)
-        - list_files(directory)
-        - move_file(source, destination)
-        - move_all_files(source_dir, dest_dir)
-        - delete_file(path)
-        - read_file(path)
-        - organize_documents(path, mode="deep"|"simple")
-        - cleanup_downloads(hours=72)
+TOOLS:
+1. files: open_file, list_files, move_file, move_all_files, delete_file, read_file, organize_documents, cleanup_downloads
 2. system: open_app, system_status, set_volume, mute, unmute
 3. memory: save_note, search_memory, get_last_note
 4. gmail: fetch_latest_email, send_email, draft_email
 5. calendar: list_events, create_event, check_availability
 6. tasks: list_tasks, add_task, complete_task
-7. advisor: ask_advisor (for safety checks or opinions)
+7. advisor: ask_advisor
 8. system_sentry: check_health, find_hogs, clean_cache
 9. pricing_tools: update_pricing, check_pricing_updates
 
-RESPONSE FORMAT:
-Respond with a JSON object:
+RESPONSE JSON:
 {
-    "intent": "Short description of intent",
-    "steps": [
-        {
-            "tool": "tool_name",
-            "action": "action_name",
-            "params": { ... }
-        }
-    ],
-    "tools": ["tool1", "tool2"],
-    "requires_confirmation": boolean
+    "intent": "Brief description",
+    "steps": [{"tool": "name", "action": "name", "params": {...}}],
+    "tools": ["tool1"],
+    "requires_confirmation": bool
 }
 """
         prompt = f"User Request: {user_intent}\n\nCreate an execution plan."
@@ -450,16 +434,12 @@ DETAILED: ...
         logger.info("Classifying text...")
         
         prompt = f"""
-Classify the following text into one of these categories: {', '.join(categories)}
+Classify text into: {', '.join(categories)}
 
 Text: {text}
 
-Respond in JSON format:
-{{
-    "category": "...",
-    "confidence": 0.0-1.0,
-    "reasoning": "..."
-}}
+JSON Response:
+{{ "category": "...", "confidence": 0.0-1.0, "reasoning": "..." }}
 """
         
         response = await self.generate_with_gpt(
