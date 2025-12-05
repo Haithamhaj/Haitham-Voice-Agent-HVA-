@@ -103,11 +103,13 @@ globs:
 - **[2025-12-05]** **Strict Organization**: Enforced rules: `.app` -> `Applications`, `.dmg` -> `Software`, Docs -> `Documents`.
 - **[2025-12-05]** **Self-Healing**: Added `verify_integrity.py` to prevent broken startups.
 - **[2025-12-05]** **Adaptive Learning (Mentor Strategy)**: 
-    - Implemented SHA-256 digital fingerprints for all files (upgraded from MD5).
-    - Created `learning_events` table with confidence scoring (1.0 initial, ±0.1/0.3 adjustments).
-    - Added passive feedback loop: files staying in place increase confidence, manual corrections decrease it.
-    - Integrated confidence-based categorization in `DeepOrganizer` (≥0.8 = auto-apply, <0.5 = LLM fallback).
-    - System now learns from YOUR manual moves, not generic AI patterns.
+    - **Phase 1**: Implemented SHA-256 digital fingerprints for all files (upgraded from MD5). Added `audit_fingerprints()` method to backfill 166 existing files.
+    - **Phase 2**: Created `learning_events` table with 13 fields including confidence (REAL, 1.0 default), times_applied (INTEGER), last_feedback (TEXT). Added indexes on file_hash and confidence.
+    - **Phase 3**: Integrated confidence-based categorization in `DeepOrganizer._analyze_file()`. Queries learning_events before LLM call. If confidence ≥0.8, applies pattern automatically (cost=$0.00). If <0.5, falls back to LLM.
+    - **Phase 4**: Implemented passive feedback loop in `AdaptiveSync.sync_knowledge_base()`. Checks auto_applied events from last 7 days. If file stayed → confidence +0.1. If moved → confidence -0.3.
+    - **Files Modified**: `adaptive_sync.py` (248 lines), `deep_organizer.py` (716 lines), `sqlite_store.py` (630 lines).
+    - **Database Stats**: 15 manual_move events logged, avg confidence 1.0, 0 auto_applied events yet.
+    - **Result**: System now learns from YOUR manual moves, not generic AI patterns. Zero-cost categorization for high-confidence patterns.
 
 ## 📏 Organization Rules (Strict)
 1.  **Applications**: `.app` bundles MUST go to `~/Applications`.

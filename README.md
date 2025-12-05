@@ -154,11 +154,29 @@ The memory system is unified to act as a single, interconnected "brain":
         - **Medium Confidence (0.5-0.8)**: Falls back to LLM categorization.
         - **Low Confidence (<0.5)**: Uses LLM with extra validation.
     - **Passive Feedback Loop**: 
-        - System tracks files organized using learned patterns.
+        - System tracks files organized using learned patterns (`event_type = 'auto_applied'`).
         - If file stays in place → confidence +0.1 (you approved).
         - If file is moved again → confidence -0.3 (you corrected).
     - **Self-Improving**: The more you use it, the smarter it gets at predicting YOUR preferences (not generic AI guesses).
-    - **Database**: All learning events stored in `learning_events` table with full audit trail.
+    - **Database Schema**: 
+        ```sql
+        CREATE TABLE learning_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_hash TEXT NOT NULL,           -- SHA-256 hash
+            event_type TEXT NOT NULL,          -- 'manual_move' or 'auto_applied'
+            old_path TEXT,
+            new_path TEXT,
+            old_category TEXT,                 -- e.g., 'Video'
+            new_category TEXT,                 -- e.g., 'Coaching'
+            timestamp TEXT NOT NULL,
+            description TEXT,
+            embedding_id TEXT,
+            confidence REAL DEFAULT 1.0,       -- Range: 0.1 to 2.0
+            times_applied INTEGER DEFAULT 0,   -- Usage counter
+            last_feedback TEXT                 -- 'confirmed' or 'rejected'
+        );
+        ```
+    - **Indexes**: `idx_learning_hash` (file_hash), `idx_learning_confidence` (confidence) for fast queries.
 - **Knowledge Tree (Dashboard)**:
     - **Real-Time Visualization**: A live, interactive file tree widget on the dashboard.
     - **Lazy Loading**: Efficiently browses the entire file system without performance lag.
