@@ -442,6 +442,18 @@ The project is fortified with an advanced security system:
 *   **Deep Search**: Semantic search within file content, not just filenames.
 *   **Auto-Indexing**: Moving a file to a project automatically indexes, summarizes, and links it to the Knowledge Graph.
 
+### 🧠 Intelligent Memory & Organization
+- **Deep Organization**: AI-powered analysis to rename and categorize files based on content.
+- **Simple Organization (Free)**: Rule-based organization by file type (Images, Docs, etc.) with zero cost.
+- **Safety Layer**: `OptimizationGuard` prevents re-analyzing unchanged files, ensuring $0.00 cost for duplicate runs.
+- **Vector Memory**: Semantic search for all your notes and documents.
+- **Graph Database**: Tracks relationships between files, projects, and concepts.
+
+### 💰 Cost Transparency
+- **Real-time Tracking**: See exact costs for every operation.
+- **Detailed Breakdown**: View separate costs for Gemini (Analysis) and GPT (Reasoning).
+- **Budget Safety**: System alerts or blocks redundant expensive operations.
+
 ---
 
 ## 🚀 التثبيت والإعداد | Installation & Setup

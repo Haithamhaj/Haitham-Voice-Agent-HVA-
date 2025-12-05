@@ -97,6 +97,12 @@ globs:
 
 - **[2025-12-03]** Added `files` tool and API route for opening files.
 - **[2025-12-03]** Fixed `FileTools` to include directories and handle aliases (download -> Downloads).
+- **[2025-12-05]** **Cost Safety Layer**: Implemented `OptimizationGuard` to prevent redundant LLM calls ($0.00 for unchanged files). Fixed `index_file` hash bug.
+- **[2025-12-05]** **Free Organization**: Added `SimpleOrganizer` for rule-based, zero-cost file organization.
+- **[2025-12-05]** **Cost Transparency**: Added detailed Gemini vs GPT cost breakdown in History Widget.
+- **[2025-12-05]** **Memory UI**: Complete overhaul of Memory View with charts and stats.
+- **[2025-12-05]** **Gemini Pricing**: Fixed Gemini 1.5 Pro pricing logic (was showing $0.00).
+- **[2025-12-05]** **File Tree**: Added auto-refresh to FileSystemTree.
 - **[2025-12-03]** Integrated Voice & Chat into unified UI (`ChatView.jsx`).
 - **[2025-12-03]** Created `WebSocketContext` for global voice state.
 - **[2025-12-03]** Updated Dashboard header font size to `text-5xl` (PURE_UI_STYLE).
