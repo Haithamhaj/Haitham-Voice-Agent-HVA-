@@ -559,6 +559,24 @@ class FileTools:
         except Exception as e:
             return {"error": True, "message": str(e)}
 
+    async def cleanup_downloads(self, hours: int = 72, **kwargs) -> Dict[str, Any]:
+        """
+        Cleanup Downloads folder: Move files older than 'hours' to Documents.
+        Uses AI to categorize them correctly.
+        """
+        try:
+            from haitham_voice_agent.tools.smart_organizer import get_organizer
+            organizer = get_organizer()
+            report = await organizer.organize_old_downloads(hours=hours)
+            
+            return {
+                "status": "completed",
+                "message": f"Cleaned up Downloads (Files > {hours}h old)",
+                "report": report
+            }
+        except Exception as e:
+            return {"error": True, "message": str(e)}
+
     async def execute_organization(self, plan: Dict[str, Any], mode: str = "deep", **kwargs) -> Dict[str, Any]:
         """Execute the approved organization plan"""
         try:

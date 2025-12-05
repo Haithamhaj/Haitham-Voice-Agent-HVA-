@@ -329,6 +329,7 @@ AVAILABLE TOOLS:
         - delete_file(path)
         - read_file(path)
         - organize_documents(path, mode="deep"|"simple")
+        - cleanup_downloads(hours=72)
 2. system: open_app, system_status, set_volume, mute, unmute
 3. memory: save_note, search_memory, get_last_note
 4. gmail: fetch_latest_email, send_email, draft_email
