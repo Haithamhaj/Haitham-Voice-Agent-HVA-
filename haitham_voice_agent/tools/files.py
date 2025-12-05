@@ -571,10 +571,12 @@ class FileTools:
             if not target_path_obj:
                  return {"error": True, "message": f"Could not find folder: {target_path}"}
             
-            # SMART ROUTING: If instruction implies "Date Sorting", force Simple Mode (Deterministic)
-            if instruction and ("date" in instruction.lower() or "تاريخ" in instruction):
+            # SMART ROUTING: If instruction implies "Date Sorting" or "Flattening", force Simple Mode (Deterministic)
+            if instruction and ("date" in instruction.lower() or "تاريخ" in instruction or "direct" in instruction.lower() or "flatten" in instruction.lower() or "مباشر" in instruction or "بدون مجلدات" in instruction or "الغي المجلدات" in instruction or "إلغاء المجلدات" in instruction):
                 mode = "simple"
-                logger.info("Instruction implies Date Sorting. Switching to Simple Mode.")
+                logger.info(f"Instruction '{instruction}' implies Simple Mode (Date/Flatten).")
+            else:
+                logger.info(f"Organizing with mode={mode}, instruction='{instruction}'")
 
             if mode == "simple":
                 from haitham_voice_agent.tools.simple_organizer import get_simple_organizer
@@ -584,10 +586,23 @@ class FileTools:
                 if plan.get("error"):
                     return {"error": True, "message": plan["error"]}
                     
-                if language.lower() == "arabic":
-                    msg = f"تم تحليل {target_path_obj} (الوضع البسيط). وجدت {len(plan.get('changes', []))} ملفات لتنظيمها حسب النوع."
+                if instruction and ("direct" in instruction.lower() or "flatten" in instruction.lower() or "مباشر" in instruction or "بدون مجلدات" in instruction or "الغي المجلدات" in instruction or "إلغاء المجلدات" in instruction):
+                    sort_type = "بشكل مباشر (بدون مجلدات)"
+                    sort_type_en = "directly (flattened)"
+                elif instruction and ("date" in instruction.lower() or "تاريخ" in instruction):
+                    sort_type = "حسب التاريخ"
+                    sort_type_en = "by date"
                 else:
-                    msg = f"I've analyzed {target_path_obj} (Simple Mode). Found {len(plan.get('changes', []))} files to organize by type."
+                    sort_type = "حسب النوع"
+                    sort_type_en = "by type"
+
+                scanned_count = plan.get('scanned', 0)
+                changes_count = len(plan.get('changes', []))
+                
+                if language.lower() == "arabic":
+                    msg = f"تم فحص {scanned_count} ملف في {target_path_obj} (الوضع البسيط). وجدت {changes_count} ملفات بحاجة لتنظيم {sort_type}."
+                else:
+                    msg = f"Scanned {scanned_count} files in {target_path_obj} (Simple Mode). Found {changes_count} files to organize {sort_type_en}."
             else:
                 from haitham_voice_agent.tools.deep_organizer import get_deep_organizer
                 organizer = get_deep_organizer()

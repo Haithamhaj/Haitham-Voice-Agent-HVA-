@@ -48,9 +48,39 @@ class SimpleOrganizer:
             "mode": "simple"
         }
         
-        for root, dirs, files in os.walk(root_path):
-            # Skip hidden dirs
-            if Path(root).name.startswith("."):
+        # Determine Recursion
+        is_recursive = False
+        if instruction:
+             # Flattening implies recursion (to find files in subfolders)
+             # Also check for explicit "recursive" keywords
+             keywords = ["recursive", "subfolders", "deep", "all", "فرعي", "الكل", "عميق", "flatten", "direct", "مباشر", "بدون مجلدات", "الغي المجلدات", "إلغاء المجلدات"]
+             if any(k in instruction.lower() for k in keywords):
+                 is_recursive = True
+        
+        # DEBUG LOGGING
+        try:
+            with open("/tmp/hva_recursion_debug.log", "w") as f:
+                f.write(f"Instruction: {instruction}\n")
+                f.write(f"Is Recursive: {is_recursive}\n")
+                f.write(f"Root Path: {root_path}\n")
+        except:
+            pass
+
+        if is_recursive:
+            walker = os.walk(root_path)
+        else:
+            # Non-recursive: Only scan the root directory
+            try:
+                # Get all files in root_path (filtering hidden ones)
+                files = [f.name for f in root_path.iterdir() if f.is_file() and not f.name.startswith(".")]
+                walker = [(str(root_path), [], files)]
+            except Exception as e:
+                logger.error(f"Error scanning root path: {e}")
+                walker = []
+
+        for root, dirs, files in walker:
+            # Skip hidden dirs (only relevant for recursive)
+            if is_recursive and Path(root).name.startswith("."):
                 continue
                 
             for file in files:
@@ -60,8 +90,13 @@ class SimpleOrganizer:
                 file_path = Path(root) / file
                 ext = file_path.suffix.lower()
                 
+                # Check for "Flatten" / "Direct" Instruction
+                if instruction and ("direct" in instruction.lower() or "flatten" in instruction.lower() or "مباشر" in instruction or "بدون مجلدات" in instruction or "الغي المجلدات" in instruction or "إلغاء المجلدات" in instruction):
+                    # Flatten: Move to root
+                    category = ""
+                    reason = "Flattened to root directory"
                 # Check for Date Sorting Instruction
-                if instruction and ("date" in instruction.lower() or "تاريخ" in instruction):
+                elif instruction and ("date" in instruction.lower() or "تاريخ" in instruction):
                     # Sort by Date: Year/Month
                     mtime = file_path.stat().st_mtime
                     dt = datetime.fromtimestamp(mtime)
@@ -78,13 +113,16 @@ class SimpleOrganizer:
                     reason = f"File extension {ext} maps to {category}"
                 
                 # Proposed path
-                proposed_path = root_path / category / file
+                if category:
+                    proposed_path = root_path / category / file
+                else:
+                    proposed_path = root_path / file
+                
+                plan["scanned"] += 1
                 
                 # Skip if already in correct place
                 if proposed_path.resolve() == file_path.resolve():
                     continue
-                    
-                plan["scanned"] += 1
                 plan["changes"].append({
                     "original_path": str(file_path),
                     "proposed_path": str(proposed_path),

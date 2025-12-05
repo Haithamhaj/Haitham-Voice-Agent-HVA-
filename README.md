@@ -72,7 +72,7 @@ A voice-operated automation agent for macOS with hybrid LLM routing, a living me
 
 A 4-layer routing architecture ensures accuracy, efficiency, and cost-optimization:
 1.  **Intent Router**: Instantly catches core Arabic commands (e.g., "save note") to bypass the LLM entirely for speed and reliability.
-2.  **Ollama Orchestrator**: Acts as a middleware to route requests between local and cloud LLMs.
+2.  **Ollama Orchestrator**: Acts as a middleware to route requests between local and cloud LLMs. Now features **Short-Term Memory** (Context Awareness) to understand follow-up commands like "Sort them" or "Confirm".
 3.  **LLM Router**: Strategically routes tasks: **Gemini** for documents/analysis, **GPT** for planning/tools (JSON).
 4.  **Model Router**: The final layer that deterministically chooses the best model variant (e.g., Flash vs. Pro) based on task metadata (quality, cost, risk), ensuring optimal performance at the lowest price.
 
@@ -137,7 +137,7 @@ The memory system is unified to act as a single, interconnected "brain":
     - **Intelligent Mode Selection (Qwen Orchestrator)** 🧠:
         - **Simple Mode** (FREE): For sorting, moving, organizing by date/size/name
             - Keywords: "رتب", "sort", "حسب التاريخ", "by date", "نقل", "move"
-            - Uses: `SimpleOrganizer` → Zero cost, instant
+            - Uses: `SimpleOrganizer` → Zero cost, instant. **Supports Direct Date Sorting (Year/Month).**
         - **Deep Mode** (AI-Powered): For intelligent categorization based on content
             - Keywords: "صنف", "categorize", "نظم ذكي", "organize intelligently"
             - Uses: `DeepOrganizer` → Gemini + GPT (with adaptive learning)
