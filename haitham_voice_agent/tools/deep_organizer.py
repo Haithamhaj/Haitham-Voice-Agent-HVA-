@@ -110,33 +110,27 @@ class DeepOrganizer:
                 "details": "Analyzing content..."
             })
             
-            # Calculate file hash (MD5)
-            import hashlib
-            hasher = hashlib.md5()
-            with open(file_path, 'rb') as f:
-                buf = f.read(65536)
-                while len(buf) > 0:
-                    hasher.update(buf)
-                    buf = f.read(65536)
-            file_hash = hasher.hexdigest()
+            # --- OPTIMIZATION GUARD (Safety Layer) ---
+            from haitham_voice_agent.intelligence.optimization_guard import get_optimization_guard
+            guard = get_optimization_guard()
             
-            # Check if file is already indexed and unchanged
-            from haitham_voice_agent.tools.memory.voice_tools import VoiceMemoryTools
-            memory_tools = VoiceMemoryTools()
-            await memory_tools.ensure_initialized()
+            guard_check = await guard.check_file(str(file_path), context="deep_organize")
             
-            existing_index = await memory_tools.memory_system.sqlite_store.get_file_index(str(file_path))
-            
-            if existing_index and existing_index.get("file_hash") == file_hash:
-                await manager.broadcast({
-                    "type": "task_progress",
-                    "task": "Deep Organize",
-                    "status": "skipped",
-                    "file": file_path.name,
-                    "details": "Unchanged (Zero Cost)"
-                })
-                logger.info(f"Skipping unchanged file: {file_path.name}")
-                return None
+            if not guard_check["should_process"]:
+                # Cache Hit! Return cached result with zero cost
+                cached_result = guard_check.get("cached_result")
+                if cached_result:
+                    await manager.broadcast({
+                        "type": "task_progress",
+                        "task": "Deep Organize",
+                        "status": "skipped",
+                        "file": file_path.name,
+                        "details": f"Cached (Saved ${guard_check.get('savings', 0):.4f})"
+                    })
+                    return cached_result
+                else:
+                    # Should not happen if check returns false, but safe fallback
+                    return None
 
             # Extract text
             text = content_extractor.extract_text(str(file_path))
@@ -214,7 +208,7 @@ class DeepOrganizer:
                 file_usage["output_tokens"] += response["usage"].get("output_tokens", 0)
                 file_usage["cost"] += response["usage"].get("cost", 0.0)
 
-            return {
+            final_result = {
                 "original_path": str(file_path),
                 "proposed_path": str(proposed_path),
                 "new_filename": new_filename,
@@ -222,6 +216,18 @@ class DeepOrganizer:
                 "reason": result.get("reason"),
                 "usage": file_usage
             }
+            
+            # Save to Guard Cache
+            file_hash = guard_check.get("file_hash")
+            if file_hash:
+                await guard.save_result(
+                    file_hash=file_hash,
+                    context="deep_organize",
+                    result=final_result,
+                    cost_saved=file_usage["cost"]
+                )
+
+            return final_result
             
         except Exception as e:
             logger.warning(f"Failed to analyze {file_path.name}: {e}")

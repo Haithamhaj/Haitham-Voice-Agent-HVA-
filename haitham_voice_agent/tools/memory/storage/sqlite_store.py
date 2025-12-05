@@ -117,8 +117,58 @@ class SQLiteStore:
             """)
             await db.execute("CREATE INDEX IF NOT EXISTS idx_checkpoint_timestamp ON checkpoints(timestamp)")
             
+            # Create Optimization Cache Table (Safety Layer)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS optimization_cache (
+                    hash TEXT NOT NULL,
+                    context TEXT NOT NULL,
+                    result TEXT NOT NULL, -- JSON
+                    timestamp TEXT NOT NULL,
+                    cost_saved REAL DEFAULT 0.0,
+                    PRIMARY KEY (hash, context)
+                )
+            """)
+            
             await db.commit()
             logger.info("SQLite schema initialized")
+
+    async def get_optimization_cache(self, file_hash: str, context: str) -> Optional[Dict[str, Any]]:
+        """Get cached result for optimization guard"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.execute(
+                    "SELECT * FROM optimization_cache WHERE hash = ? AND context = ?", 
+                    (file_hash, context)
+                ) as cursor:
+                    row = await cursor.fetchone()
+                    if row:
+                        data = dict(row)
+                        if data["result"]:
+                            data["result"] = json.loads(data["result"])
+                        return data
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get optimization cache: {e}")
+            return None
+
+    async def save_optimization_cache(self, file_hash: str, context: str, result: Dict[str, Any], cost_saved: float = 0.0):
+        """Save result to optimization cache"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("""
+                    INSERT OR REPLACE INTO optimization_cache (hash, context, result, timestamp, cost_saved)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    file_hash,
+                    context,
+                    json.dumps(result),
+                    datetime.now().isoformat(),
+                    cost_saved
+                ))
+                await db.commit()
+        except Exception as e:
+            logger.error(f"Failed to save optimization cache: {e}")
 
     async def index_file(self, path: str, project_id: str, description: str = "", tags: List[str] = None, embedding_id: str = None, file_hash: str = None) -> bool:
         """Index a file"""

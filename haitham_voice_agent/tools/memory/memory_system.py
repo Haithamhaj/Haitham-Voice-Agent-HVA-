@@ -308,7 +308,7 @@ class MemorySystem:
             logger.error(f"Failed to delete memory {memory_id}: {e}")
             return False
 
-    async def index_file(self, path: str, project_id: str, description: str = "", tags: List[str] = None, content: str = None) -> bool:
+    async def index_file(self, path: str, project_id: str, description: str = "", tags: List[str] = None, content: str = None, file_hash: str = None) -> bool:
         """
         Index a file in the memory system.
         Generates an embedding for the description/content to allow semantic search.
@@ -339,7 +339,7 @@ class MemorySystem:
             self.vector_store.add_embedding(vector_id, embedding, metadata)
             
             # Store in SQLite File Index
-            return await self.sqlite_store.index_file(path, project_id, description, tags, vector_id)
+            return await self.sqlite_store.index_file(path, project_id, description, tags, vector_id, file_hash)
             
         except Exception as e:
             logger.error(f"Failed to index file {path}: {e}")

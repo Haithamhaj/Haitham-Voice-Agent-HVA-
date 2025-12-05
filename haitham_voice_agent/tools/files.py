@@ -454,43 +454,57 @@ class FileTools:
         except Exception as e:
             return {"error": True, "message": str(e)}
 
-    async def organize_documents(self, path: str = None, **kwargs) -> Dict[str, Any]:
+    async def organize_documents(self, path: str = None, mode: str = "deep", **kwargs) -> Dict[str, Any]:
         """
-        Analyze and propose reorganization for a folder (e.g., Documents).
-        Returns a plan that requires confirmation.
+        Analyze and propose reorganization for a folder.
+        Args:
+            path: Folder to organize (default: Documents)
+            mode: "deep" (AI-powered, cost $) or "simple" (Extension-based, Free)
         """
         # Handle LLM parameter hallucinations
         target_path = path or kwargs.get("folder_path") or kwargs.get("directory")
         
         if not target_path:
-            return {"error": True, "message": "Please specify a folder to organize."}
+            # Default to Documents if not specified
+            target_path = "Documents"
+
         try:
-            from haitham_voice_agent.tools.deep_organizer import get_deep_organizer
-            
-            target_path = self._validate_path(path or "Documents")
-            if not target_path:
+            target_path_obj = self._validate_path(target_path)
+            if not target_path_obj:
                  return {"error": True, "message": "Invalid path"}
             
-            organizer = get_deep_organizer()
-            # Use target_path instead of path
-            plan = await organizer.scan_and_plan(str(target_path))
+            if mode == "simple":
+                from haitham_voice_agent.tools.simple_organizer import get_simple_organizer
+                organizer = get_simple_organizer()
+                plan = await organizer.scan_and_plan(str(target_path_obj))
+                msg = f"I've analyzed {target_path_obj} (Simple Mode). Found {len(plan['changes'])} files to organize by type."
+            else:
+                from haitham_voice_agent.tools.deep_organizer import get_deep_organizer
+                organizer = get_deep_organizer()
+                plan = await organizer.scan_and_plan(str(target_path_obj))
+                msg = f"I've analyzed {target_path_obj} (Deep Mode). Found {len(plan['changes'])} files to organize intelligently."
             
             return {
                 "status": "plan_ready",
                 "plan": plan,
                 "requires_confirmation": True,
-                "message": f"I've analyzed {target_path}. Found {len(plan['changes'])} files to organize.",
-                "command": "files.execute_organization", # Future command
-                "params": {"plan": plan}
+                "message": msg,
+                "command": "files.execute_organization",
+                "params": {"plan": plan, "mode": mode}
             }
         except Exception as e:
             return {"error": True, "message": str(e)}
 
-    async def execute_organization(self, plan: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+    async def execute_organization(self, plan: Dict[str, Any], mode: str = "deep", **kwargs) -> Dict[str, Any]:
         """Execute the approved organization plan"""
         try:
-            from haitham_voice_agent.tools.deep_organizer import get_deep_organizer
-            organizer = get_deep_organizer()
+            if mode == "simple":
+                from haitham_voice_agent.tools.simple_organizer import get_simple_organizer
+                organizer = get_simple_organizer()
+            else:
+                from haitham_voice_agent.tools.deep_organizer import get_deep_organizer
+                organizer = get_deep_organizer()
+                
             return await organizer.execute_plan(plan)
         except Exception as e:
             return {"error": True, "message": str(e)}
