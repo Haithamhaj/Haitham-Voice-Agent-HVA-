@@ -195,18 +195,28 @@ class DeepOrganizer:
             file_usage = {
                 "input_tokens": 0,
                 "output_tokens": 0,
-                "cost": 0.0
+                "cost": 0.0,
+                "gemini_cost": 0.0,
+                "gpt_cost": 0.0,
+                "gemini_tokens": 0,
+                "gpt_tokens": 0
             }
             
             if "usage" in summary_result:
-                file_usage["input_tokens"] += summary_result["usage"].get("input_tokens", 0)
-                file_usage["output_tokens"] += summary_result["usage"].get("output_tokens", 0)
-                file_usage["cost"] += summary_result["usage"].get("cost", 0.0)
+                u = summary_result["usage"]
+                file_usage["input_tokens"] += u.get("input_tokens", 0)
+                file_usage["output_tokens"] += u.get("output_tokens", 0)
+                file_usage["cost"] += u.get("cost", 0.0)
+                file_usage["gemini_cost"] += u.get("cost", 0.0)
+                file_usage["gemini_tokens"] += u.get("input_tokens", 0) + u.get("output_tokens", 0)
                 
             if "usage" in response:
-                file_usage["input_tokens"] += response["usage"].get("input_tokens", 0)
-                file_usage["output_tokens"] += response["usage"].get("output_tokens", 0)
-                file_usage["cost"] += response["usage"].get("cost", 0.0)
+                u = response["usage"]
+                file_usage["input_tokens"] += u.get("input_tokens", 0)
+                file_usage["output_tokens"] += u.get("output_tokens", 0)
+                file_usage["cost"] += u.get("cost", 0.0)
+                file_usage["gpt_cost"] += u.get("cost", 0.0)
+                file_usage["gpt_tokens"] += u.get("input_tokens", 0) + u.get("output_tokens", 0)
 
             final_result = {
                 "original_path": str(file_path),
@@ -251,6 +261,10 @@ class DeepOrganizer:
         operations_log = []
         total_cost = 0.0
         total_tokens = 0
+        gemini_cost = 0.0
+        gpt_cost = 0.0
+        gemini_tokens = 0
+        gpt_tokens = 0
             
         for change in changes:
             try:
@@ -259,8 +273,13 @@ class DeepOrganizer:
                 
                 # Accumulate usage from analysis
                 if "usage" in change:
-                    total_cost += change["usage"].get("cost", 0.0)
-                    total_tokens += change["usage"].get("input_tokens", 0) + change["usage"].get("output_tokens", 0)
+                    u = change["usage"]
+                    total_cost += u.get("cost", 0.0)
+                    total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+                    gemini_cost += u.get("gemini_cost", 0.0)
+                    gpt_cost += u.get("gpt_cost", 0.0)
+                    gemini_tokens += u.get("gemini_tokens", 0)
+                    gpt_tokens += u.get("gpt_tokens", 0)
                 
                 if not src.exists():
                     report["failed"] += 1
@@ -342,7 +361,11 @@ class DeepOrganizer:
                     meta={
                         "model": "Hybrid (Gemini + GPT-4o)",
                         "cost": total_cost,
-                        "tokens": total_tokens
+                        "tokens": total_tokens,
+                        "gemini_cost": gemini_cost,
+                        "gpt_cost": gpt_cost,
+                        "gemini_tokens": gemini_tokens,
+                        "gpt_tokens": gpt_tokens
                     }
                 )
                 report["checkpoint_id"] = checkpoint_id

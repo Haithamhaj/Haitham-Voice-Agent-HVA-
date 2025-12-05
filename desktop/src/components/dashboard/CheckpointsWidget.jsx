@@ -112,16 +112,34 @@ const CheckpointsWidget = () => {
 
                                     {/* Badges Row */}
                                     {!isLegacy && (meta.cost !== undefined || meta.tokens !== undefined) && (
-                                        <div className="flex items-center gap-2 mt-3 ml-12">
-                                            {meta.cost !== undefined && (
-                                                <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 font-mono">
-                                                    ${meta.cost.toFixed(4)}
-                                                </span>
-                                            )}
-                                            {meta.tokens !== undefined && (
-                                                <span className="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20 font-mono">
-                                                    {meta.tokens} toks
-                                                </span>
+                                        <div className="flex flex-col gap-1 mt-3 ml-12">
+                                            <div className="flex items-center gap-2">
+                                                {meta.cost !== undefined && (
+                                                    <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 font-mono">
+                                                        ${meta.cost.toFixed(4)}
+                                                    </span>
+                                                )}
+                                                {meta.tokens !== undefined && (
+                                                    <span className="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20 font-mono">
+                                                        {meta.tokens} toks
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Detailed Breakdown */}
+                                            {(meta.gemini_cost > 0 || meta.gpt_cost > 0) && (
+                                                <div className="flex items-center gap-2 text-[9px] text-hva-muted font-mono opacity-80">
+                                                    {meta.gemini_cost > 0 && (
+                                                        <span title="Gemini Cost">
+                                                            <span className="text-blue-400">Gemini:</span> ${meta.gemini_cost.toFixed(4)}
+                                                        </span>
+                                                    )}
+                                                    {meta.gpt_cost > 0 && (
+                                                        <span title="GPT Cost">
+                                                            <span className="text-green-400">GPT:</span> ${meta.gpt_cost.toFixed(4)}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     )}
