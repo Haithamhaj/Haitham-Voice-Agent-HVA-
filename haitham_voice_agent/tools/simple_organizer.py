@@ -97,11 +97,26 @@ class SimpleOrganizer:
                     reason = "Flattened to root directory"
                 # Check for Date Sorting Instruction
                 elif instruction and ("date" in instruction.lower() or "تاريخ" in instruction):
-                    # Sort by Date: Year/Month
                     mtime = file_path.stat().st_mtime
                     dt = datetime.fromtimestamp(mtime)
-                    category = f"{dt.year}/{dt.strftime('%m-%B')}"
-                    reason = f"Sorted by Date: {dt.strftime('%Y-%m-%d')}"
+                    
+                    # Check if user explicitly asked for folders
+                    if "folder" in instruction.lower() or "مجلد" in instruction:
+                        # Sort by Date: Year/Month (Create Folders)
+                        category = f"{dt.year}/{dt.strftime('%m-%B')}"
+                        reason = f"Sorted by Date into folders: {dt.strftime('%Y-%m-%d')}"
+                        new_name = file
+                    else:
+                        # Sort by Date: Rename Only (Flat)
+                        category = "" # Stay in current folder
+                        date_prefix = dt.strftime('%Y-%m-%d')
+                        if not file.startswith(date_prefix):
+                            new_name = f"{date_prefix}_{file}"
+                            reason = f"Renamed with Date: {date_prefix}"
+                        else:
+                            new_name = file
+                            reason = "Already has date prefix"
+
                 else:
                     # Default: Sort by Extension
                     # Find category
@@ -111,12 +126,13 @@ class SimpleOrganizer:
                             category = cat
                             break
                     reason = f"File extension {ext} maps to {category}"
+                    new_name = file
                 
                 # Proposed path
                 if category:
-                    proposed_path = root_path / category / file
+                    proposed_path = root_path / category / new_name
                 else:
-                    proposed_path = root_path / file
+                    proposed_path = root_path / new_name
                 
                 plan["scanned"] += 1
                 
@@ -126,7 +142,7 @@ class SimpleOrganizer:
                 plan["changes"].append({
                     "original_path": str(file_path),
                     "proposed_path": str(proposed_path),
-                    "new_filename": file, # No renaming in simple mode
+                    "new_filename": new_name,
                     "category": category,
                     "reason": reason,
                     "usage": {"cost": 0.0, "tokens": 0} # Explicit zero cost
@@ -194,8 +210,11 @@ class SimpleOrganizer:
                         "tokens": 0
                     }
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"CRITICAL: Failed to create checkpoint! Operations cannot be undone. Error: {e}")
+                # Still return success report, but log the checkpoint failure
+                report["checkpoint_failed"] = True
+                report["checkpoint_error"] = str(e)
                 
         return report
 

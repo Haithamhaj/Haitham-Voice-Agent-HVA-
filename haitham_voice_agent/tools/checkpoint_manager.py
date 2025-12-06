@@ -20,6 +20,13 @@ class CheckpointManager:
     def __init__(self):
         # We access the store via the global memory system
         self.store = memory_system.sqlite_store
+        self._initialized = False
+        
+    async def ensure_initialized(self):
+        """Ensure database is initialized"""
+        if not self._initialized:
+            await memory_system.initialize()
+            self._initialized = True
         
     async def create_checkpoint(self, action_type: str, description: str, operations: List[Dict[str, str]], meta: Optional[Dict[str, Any]] = None) -> str:
         """
@@ -31,6 +38,7 @@ class CheckpointManager:
             operations: List of dicts with 'src' and 'dst' keys showing what was moved.
             meta: Optional metadata (model, cost, tokens)
         """
+        await self.ensure_initialized()
         checkpoint_id = str(uuid.uuid4())
         timestamp = datetime.now().isoformat()
         
@@ -64,6 +72,7 @@ class CheckpointManager:
 
     async def get_checkpoints(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent checkpoints"""
+        await self.ensure_initialized()
         try:
             async with aiosqlite.connect(self.store.db_path) as db:
                 db.row_factory = aiosqlite.Row
@@ -83,9 +92,11 @@ class CheckpointManager:
         Rollback a specific checkpoint.
         Reverses the operations (moves files from 'dst' back to 'src').
         """
+        await self.ensure_initialized()
         logger.info(f"Rolling back checkpoint: {checkpoint_id}")
         
         report = {
+            "type": "rollback_report",
             "success": 0,
             "failed": 0,
             "errors": []

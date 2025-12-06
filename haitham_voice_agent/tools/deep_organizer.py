@@ -737,7 +737,9 @@ class DeepOrganizer:
                 report["checkpoint_id"] = checkpoint_id
                 logger.info(f"Checkpoint saved: {checkpoint_id}")
             except Exception as e:
-                logger.error(f"Failed to save checkpoint: {e}")
+                logger.error(f"CRITICAL: Failed to create checkpoint! Operations cannot be undone. Error: {e}")
+                report["checkpoint_failed"] = True
+                report["checkpoint_error"] = str(e)
                 report["errors"].append(f"Checkpoint failed: {str(e)}")
                 
         return report

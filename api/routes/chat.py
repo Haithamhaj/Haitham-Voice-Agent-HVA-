@@ -136,7 +136,32 @@ async def chat(request: ChatRequest):
                 response_text = str(result.get("message") or result)
                 is_arabic = any('\u0600' <= char <= '\u06FF' for char in text)
                 
-                if is_arabic and result.get("success"):
+                if result.get("success") is not None and isinstance(result.get("success"), int):
+                     # This is an execution report
+                     success_count = result.get("success", 0)
+                     failed_count = result.get("failed", 0)
+                     checkpoint_failed = result.get("checkpoint_failed", False)
+                     
+                     if is_arabic:
+                         if failed_count == 0:
+                             response_text = f"✅ تم تنفيذ العملية بنجاح على {success_count} ملف."
+                         else:
+                             response_text = f"⚠️ تم نقل {success_count} ملف، ولكن فشل نقل {failed_count} ملف."
+                         
+                         # CRITICAL: Warn if checkpoint failed
+                         if checkpoint_failed:
+                             response_text += f"\n\n🚨 تحذير: فشل تسجيل العملية! لا يمكن التراجع عن هذه التغييرات."
+                     else:
+                         if failed_count == 0:
+                             response_text = f"✅ Successfully processed {success_count} files."
+                         else:
+                             response_text = f"⚠️ Processed {success_count} files, but {failed_count} failed."
+                         
+                         # CRITICAL: Warn if checkpoint failed
+                         if checkpoint_failed:
+                             response_text += f"\n\n🚨 Warning: Failed to log operation! Cannot undo these changes."
+
+                elif is_arabic and result.get("success"):
                     if ollama_result["intent"] == "show_files":
                         count = result.get("count", 0)
                         dir_name = result.get("directory", "المجلد")
@@ -298,12 +323,17 @@ async def chat(request: ChatRequest):
             }
             
         # Special handling for Undo/Rollback
-        if last_result.get("type") == "rollback_report":
+        if last_result.get("type") == "rollback_report" or ("success" in last_result and "failed" in last_result and isinstance(last_result["success"], int)):
             success = last_result.get("success", 0)
             failed = last_result.get("failed", 0)
-            response_text = f"✅ تم التراجع عن {success} عملية.\n"
-            if failed > 0:
-                response_text += f"⚠️ فشل التراجع عن {failed} ملفات (قد تكون حذفت أو عدلت)."
+            
+            if failed == 0:
+                response_text = f"✅ تم تنفيذ العملية بنجاح ({success} ملف)."
+            else:
+                response_text = f"⚠️ تم تنفيذ {success} عملية، وفشل {failed}."
+            
+            # Ensure type is set for frontend
+            last_result["type"] = "rollback_report"
             
             return {
                 "response": response_text,

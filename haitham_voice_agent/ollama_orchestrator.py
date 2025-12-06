@@ -60,7 +60,7 @@ VALID INTENTS:
       Keywords: رتب، sort، ترتيب، حسب التاريخ، by date، by size، نقل، move
     - mode="deep": For intelligent categorization based on content (Uses AI, costs $)
       Keywords: صنف، categorize، organize intelligently، نظم ذكي، حلل، analyze
-    - instruction: The exact user instruction (e.g. "Sort by date", "Group by project")
+    - instruction: The FULL user instruction (e.g. "Sort by date and flatten", "الغي المجلدات الفرعية ورتب حسب التاريخ")
 - morning_briefing: صباح الخير، good morning (triggers daily briefing)
 - work_mode: وضع العمل، work mode
 - meeting_mode: وضع الاجتماع، meeting mode
@@ -71,7 +71,7 @@ VALID INTENTS:
 Response:
 {"type": "execute_command", "intent": "open_folder", "parameters": {"path": "Downloads"}}
 {"type": "execute_command", "intent": "show_files", "parameters": {"path": "Downloads", "sort_by": "date"}}
-{"type": "execute_command", "intent": "organize_documents", "parameters": {"path": "Coaching", "mode": "simple"}}
+{"type": "execute_command", "intent": "organize_documents", "parameters": {"path": "Coaching", "mode": "simple", "instruction": "الغي المجلدات الفرعية ورتب حسب التاريخ"}}
 {"type": "execute_command", "intent": "organize_documents", "parameters": {"path": "Downloads", "mode": "deep"}}
 {"type": "execute_command", "intent": "system_check", "parameters": {"action": "health"}}
 {"type": "execute_command", "intent": "open_app", "parameters": {"app": "Safari"}}
@@ -147,6 +147,10 @@ When user agrees to a proposed plan or action:
 - "يلا"
 - "باشر"
 - "توكل"
+- "نعم"
+- "ايوه"
+- "أجل"
+- "yeah"
 
 Response:
 {"type": "execute_command", "intent": "confirm_action", "parameters": {}}
@@ -158,8 +162,8 @@ EXAMPLES
 User: "افتح مجلد التنزيلات"
 {"type": "execute_command", "intent": "open_folder", "parameters": {"path": "Downloads"}}
 
-User: "رتب الملفات في مجلد Coaching حسب التاريخ"
-{"type": "execute_command", "intent": "organize_documents", "parameters": {"path": "Coaching", "mode": "simple", "instruction": "حسب التاريخ"}}
+User: "رتب الملفات في مجلد Coaching حسب التاريخ والغي المجلدات الفرعية"
+{"type": "execute_command", "intent": "organize_documents", "parameters": {"path": "Coaching", "mode": "simple", "instruction": "حسب التاريخ والغي المجلدات الفرعية"}}
 
 User: "نظم مجلد التنزيلات بشكل ذكي"
 {"type": "execute_command", "intent": "organize_documents", "parameters": {"path": "Downloads", "mode": "deep"}}

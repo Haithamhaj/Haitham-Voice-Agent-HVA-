@@ -32,7 +32,10 @@ const CheckpointsWidget = () => {
         setRollingBack(id);
         try {
             const result = await api.post(`/checkpoints/${id}/rollback`);
-            alert(`Rollback Complete!\nSuccess: ${result.success}\nFailed: ${result.failed}`);
+            // Backend returns {response, data: {success, failed, type}}
+            const success = result.data?.success ?? result.success ?? 0;
+            const failed = result.data?.failed ?? result.failed ?? 0;
+            alert(`Rollback Complete!\nSuccess: ${success}\nFailed: ${failed}`);
             fetchCheckpoints(); // Refresh list
         } catch (error) {
             alert('Rollback failed: ' + error.message);
