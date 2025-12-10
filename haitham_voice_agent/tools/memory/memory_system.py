@@ -381,7 +381,32 @@ class MemorySystem:
                         res["score"] = 0.5 # Arbitrary score for text match
                         results.append(res)
                         seen_paths.add(res["path"])
-                        
+            
+            # 4. Transliteration Fallback (Arabic -> Latin)
+            # e.g. "كرافت" -> "kraft" to match "CRAFTS"
+            if len(results) < limit:
+                import re
+                arabic_to_latin = {
+                    'ا': 'a', 'أ': 'a', 'إ': 'e', 'آ': 'a',
+                    'ب': 'b', 'ت': 't', 'ث': 'th',
+                    'ج': 'j', 'ح': 'h', 'خ': 'kh',
+                    'د': 'd', 'ذ': 'th', 'ر': 'r', 'ز': 'z',
+                    'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd',
+                    'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh',
+                    'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l',
+                    'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w',
+                    'ي': 'y', 'ى': 'a', 'ة': 'a', 'ء': '',
+                }
+                transliterated = ''.join(arabic_to_latin.get(c, c) for c in query)
+                
+                if transliterated != query:
+                    trans_results = await self.sqlite_store.search_file_index(transliterated)
+                    for res in trans_results:
+                        if res["path"] not in seen_paths:
+                            res["score"] = 0.4 # Slightly lower score for transliterated match
+                            results.append(res)
+                            seen_paths.add(res["path"])
+
             return results[:limit]
             
         except Exception as e:

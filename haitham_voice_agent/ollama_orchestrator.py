@@ -61,6 +61,9 @@ VALID INTENTS:
     - mode="deep": For intelligent categorization based on content (Uses AI, costs $)
       Keywords: صنف، categorize، organize intelligently، نظم ذكي، حلل، analyze
     - instruction: The FULL user instruction (e.g. "Sort by date and flatten", "الغي المجلدات الفرعية ورتب حسب التاريخ")
+    - instruction: The FULL user instruction (e.g. "Sort by date and flatten", "الغي المجلدات الفرعية ورتب حسب التاريخ")
+- search_files: ابحث عن ملف، وين ملف، بدي ملف، find file, search for file, where is file
+  * params: query (what to search for)
 - morning_briefing: صباح الخير، good morning (triggers daily briefing)
 - work_mode: وضع العمل، work mode
 - meeting_mode: وضع الاجتماع، meeting mode
@@ -75,7 +78,26 @@ Response:
 {"type": "execute_command", "intent": "organize_documents", "parameters": {"path": "Downloads", "mode": "deep"}}
 {"type": "execute_command", "intent": "system_check", "parameters": {"action": "health"}}
 {"type": "execute_command", "intent": "open_app", "parameters": {"app": "Safari"}}
+{"type": "execute_command", "intent": "search_files", "parameters": {"query": "كرافت"}}
 {"type": "execute_command", "intent": "work_mode", "parameters": {}}
+
+═══════════════════════════════════════════════════════════
+RULE 2.5: SEARCH FILES (type: execute_command, intent: search_files) ** HIGH PRIORITY **
+═══════════════════════════════════════════════════════════
+When request starts with or contains:
+- بدي ملف، أريد ملف، وين ملف، ابحث عن ملف، طلعلي ملف
+- I want a file، find file، search for file، where is the file
+
+IMPORTANT: Even if the topic sounds like it needs research (like a company name or concept),
+if the user says "بدي ملف" or "find file", they want to SEARCH LOCAL FILES, not get info from GPT.
+
+Response:
+{"type": "execute_command", "intent": "search_files", "parameters": {"query": "extracted topic"}}
+
+Examples:
+- "بدي ملف بحكي عن كرافت" -> {"type": "execute_command", "intent": "search_files", "parameters": {"query": "كرافت"}}
+- "وين ملف العقد؟" -> {"type": "execute_command", "intent": "search_files", "parameters": {"query": "العقد"}}
+- "find file about marketing" -> {"type": "execute_command", "intent": "search_files", "parameters": {"query": "marketing"}}
 
 ═══════════════════════════════════════════════════════════
 RULE 3: DELEGATE TO GPT (type: delegate, delegate_to: gpt)
@@ -167,6 +189,12 @@ User: "رتب الملفات في مجلد Coaching حسب التاريخ وال
 
 User: "نظم مجلد التنزيلات بشكل ذكي"
 {"type": "execute_command", "intent": "organize_documents", "parameters": {"path": "Downloads", "mode": "deep"}}
+
+User: "بدي ملف بحكي عن كرافت"
+{"type": "execute_command", "intent": "search_files", "parameters": {"query": "كرافت"}}
+
+User: "وين ملف العقد؟"
+{"type": "execute_command", "intent": "search_files", "parameters": {"query": "العقد"}}
 
 User: "صباح الخير"
 {"type": "execute_command", "intent": "morning_briefing", "parameters": {}}

@@ -110,6 +110,71 @@ async def chat(request: ChatRequest):
                      "action": tool_action,
                      "params": {}
                  }
+            elif ollama_result["intent"] == "search_files":
+                 # Use memory_system directly (same as /memory/search) for consistent, rich results
+                 from haitham_voice_agent.tools.memory.memory_system import memory_system
+                 await memory_system.initialize()
+                 
+                 query = ollama_result["parameters"].get("query", "")
+                 
+                 # Search Memories & Files (now includes transliteration in memory_system)
+                 memories = await memory_system.search_memories(query=query, limit=5)
+                 files = await memory_system.search_files(query=query, limit=5)
+                 
+                 # Format results for frontend (Rich Cards)
+                 formatted_results = []
+                 
+                 # Add Memories
+                 for mem in memories:
+                     formatted_results.append({
+                         "id": mem.id,
+                         "content": mem.ultra_brief or mem.raw_content[:200],
+                         "text": mem.raw_content,
+                         "type": mem.type.value if hasattr(mem.type, "value") else str(mem.type),
+                         "project": mem.project,
+                         "timestamp": mem.timestamp.isoformat() if hasattr(mem.timestamp, "isoformat") else str(mem.timestamp),
+                         "metadata": {
+                             "type": mem.type.value if hasattr(mem.type, "value") else str(mem.type),
+                             "project": mem.project,
+                             "source": "memory"
+                         }
+                     })
+                     
+                 # Add Files
+                 for f in files:
+                     formatted_results.append({
+                         "id": f.get("path"),
+                         "content": f.get("description") or f.get("path"),
+                         "text": f.get("description", ""),
+                         "type": "file",
+                         "project": f.get("project_id", "Unknown"),
+                         "timestamp": f.get("last_modified", ""),
+                         "score": f.get("score", 0),
+                         "metadata": {
+                             "type": "file",
+                             "project": f.get("project_id"),
+                             "path": f.get("path"),
+                             "source": "file_index"
+                         }
+                     })
+                 
+                 # Construct natural language summary
+                 summary = ""
+                 if not memories and not files:
+                     summary = "لم أجد أي نتائج مطابقة."
+                 else:
+                     summary = f"وجدث {len(memories)} ملاحظات و {len(files)} ملفات."
+                     if files:
+                         top_file = files[0].get('path', '').split('/')[-1]
+                         summary += f" أبرزها ملف '{top_file}'."
+                 
+                 # Return rich response
+                 return {
+                     "response": summary,
+                     "type": "search_results", # Frontend should render this as cards
+                     "data": formatted_results,
+                     "model": "Memory Search"
+                 }
             elif ollama_result["intent"] == "confirm_action":
                  # User said "Ok" / "Yes". Check if we have a pending plan.
                  # For now, we assume the pending plan is the last organization plan.
@@ -133,6 +198,15 @@ async def chat(request: ChatRequest):
                     return {"response": "عذراً، لم أتمكن من تنفيذ هذا الأمر محلياً. سأحاول بطريقة أخرى.", "model": "Qwen 2.5 (Local)"}
                 
                 # Localize response if input is Arabic
+                # Handle both string results (from voice search) and dict results
+                if isinstance(result, str):
+                    # Voice search returns a string directly - return it immediately
+                    return {
+                        "response": result,
+                        "type": "search_result",
+                        "model": "Memory Search"
+                    }
+                    
                 response_text = str(result.get("message") or result)
                 is_arabic = any('\u0600' <= char <= '\u06FF' for char in text)
                 

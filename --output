@@ -6,7 +6,7 @@ alwaysApply: true
 
 # 🧠 Haitham Voice Agent (HVA) SNAPSHOT
 > ⚠️ READ THIS BEFORE ANY CODE CHANGE
-> Auto-synced: 2025-12-06 16:05
+> Auto-synced: 2025-12-06 13:20
 
 ---
 
@@ -86,28 +86,8 @@ optional:
 ## FILES
 > 📂 CHECK HERE BEFORE CREATING ANY FILE
 ```
---output: other | -
-.DS_Store: other | -
-.agent/workflows/hva-preflight.md: documentation | -
-.agent/workflows/update-readme.md: documentation | -
-.env: environment-vars | -
-.env.example: environment-vars | -
-.github/workflows/README.md: documentation | -
-.github/workflows/update-readme.yml: config | -
-.gitignore: git-ignore | -
-.guardian-temp/scanner.py: scanner | scan_project, scan, generate_mdc, generate_lite_mdc, save
-DEVELOPER_TOOLKIT.md: documentation | -
-GIT_PUSH_SUMMARY.md: documentation | -
-HVA-Electron-GUI-Plan.md: documentation | -
-HVA_Advanced_Memory_System_Module_SRS.md: documentation | -
-HVA_Gmail_Module_SRS_v1.0.md: documentation | -
-HVA_QUICK_REFERENCE.txt: documentation | -
-HVA_SIMPLE_GUIDE.md: documentation | -
-README.md: documentation | -
-analysis_output.txt: documentation | -
 analyze_cost.py: analyze_cost | analyze
 analyze_report.py: analyze_report | -
-api/.DS_Store: other | -
 api/__init__.py: __init__-endpoints | -
 api/connection_manager.py: connection_manager-endpoints | connect, disconnect, broadcast
 api/main.py: main-endpoints | startup_event, root, health_check, websocket_endpoint
@@ -125,67 +105,44 @@ api/routes/voice.py: voice-endpoints | start_listening, stop_listening
 check_memory.py: check_memory | check_memory
 check_schema.py: check_schema | check_schema
 check_vector.py: check_vector | check_vector
-client_secret_90322441004-anqrrenjno7nikkrmq8chgnmr9rfpntl.apps.googleusercontent.com.json: config | -
-desktop/.gitignore: git-ignore | -
-desktop/README.md: documentation | -
-desktop/dist_renderer/assets/index-3qFTOb7E.css: styling | -
-desktop/dist_renderer/assets/index-Bq_QJ4n6.js: index-bq_qj4n6 | U0, qy, Uf, rd, Eo
-desktop/dist_renderer/index.html: data | -
-desktop/dist_renderer/vite.svg: data | -
-desktop/entitlements.mac.plist: other | -
+desktop/dist_renderer/assets/index-Bq_QJ4n6.js: index-bq_qj4n6 | yd, Rn, dr, Vl, at
 desktop/eslint.config.js: eslint.config | -
-desktop/index.html: data | -
 desktop/main.js: entry-point | startApi, createWindow
-desktop/package-lock.json: config | -
-desktop/package.json: npm-config | -
 desktop/postcss.config.js: postcss.config | -
 desktop/preload.js: preload | -
-desktop/public/vite.svg: data | -
-desktop/src/.DS_Store: other | -
-desktop/src/App.css: styling | -
-desktop/src/App.jsx: entry-point | AppContent, App
-desktop/src/assets/react.svg: data | -
-desktop/src/components/common/Toast.jsx: toast | Toast, addToast, removeToast
-desktop/src/components/dashboard/CheckpointsWidget.jsx: checkpointswidget | toggleExpand, catch, fetchCheckpoints, formatDate, handleRollback
-desktop/src/components/dashboard/FileSystemTree.jsx: filesystemtree | catch, loadRoot, fetchTree, FileSystemTree, getIcon
-desktop/src/components/dashboard/SystemHealthWidget.jsx: systemhealthwidget | catch, getStatusColor, handleCleanCache, fetchHealth, SystemHealthWidget
-desktop/src/components/dashboard/TaskProgressWidget.jsx: taskprogresswidget | handleMessage, connect, TaskProgressWidget, addLog
-desktop/src/components/dashboard/UsageDetailsModal.jsx: usagedetailsmodal | UsageDetailsModal, fetchData, catch
-desktop/src/components/dashboard/UsageWidget.jsx: usagewidget | fetchStats, catch, UsageWidget
+desktop/src/App.jsx: entry-point | App, AppContent
+desktop/src/components/common/Toast.jsx: toast | removeToast, addToast, Toast
+desktop/src/components/dashboard/CheckpointsWidget.jsx: checkpointswidget | handleRollback, fetchCheckpoints, toggleExpand, CheckpointsWidget, formatDate
+desktop/src/components/dashboard/FileSystemTree.jsx: filesystemtree | getIcon, handleLoadChildren, FileSystemTree, updateNode, TreeNode
+desktop/src/components/dashboard/SystemHealthWidget.jsx: systemhealthwidget | getStatusColor, fetchHealth, SystemHealthWidget, handleCleanCache, catch
+desktop/src/components/dashboard/TaskProgressWidget.jsx: taskprogresswidget | addLog, handleMessage, TaskProgressWidget, connect
+desktop/src/components/dashboard/UsageDetailsModal.jsx: usagedetailsmodal | catch, UsageDetailsModal, fetchData
+desktop/src/components/dashboard/UsageWidget.jsx: usagewidget | UsageWidget, catch, fetchStats
 desktop/src/components/layout/Sidebar.jsx: sidebar | Sidebar
-desktop/src/components/layout/TitleBar.jsx: titlebar | handleMinimize, handleMaximize, handleClose, TitleBar
+desktop/src/components/layout/TitleBar.jsx: titlebar | handleMinimize, handleClose, TitleBar, handleMaximize
 desktop/src/components/voice/VoiceOverlay.jsx: voiceoverlay | VoiceOverlay
-desktop/src/context/ChatContext.jsx: chatcontext | ChatProvider, useChatContext, setMessages
-desktop/src/context/WebSocketContext.jsx: websocketcontext | useWebSocketContext, catch, connectWs, WebSocketProvider, toggleListening
-desktop/src/developer-toolkit/ToolkitView.jsx: toolkitview | generateReport, closeDiagnosis, catch, getLevelColor, getLevelIcon
+desktop/src/context/ChatContext.jsx: chatcontext | ChatProvider, setMessages, useChatContext
+desktop/src/context/WebSocketContext.jsx: websocketcontext | toggleListening, WebSocketProvider, connectWs, useWebSocketContext, catch
+desktop/src/developer-toolkit/ToolkitView.jsx: toolkitview | generateReport, exportReport, getLevelIcon, saveReportToAI, getLevelColor
 desktop/src/developer-toolkit/diagnostics.js: diagnostics | diagnoseError
-desktop/src/developer-toolkit/logger.js: logger | subscribeErrors, clear, emitChange, addLog, getLogs
-desktop/src/developer-toolkit/networkMonitor.js: networkmonitor | getRequests, useNetworkMonitor, clear, emitChange, logRequest
-desktop/src/hooks/useWebSocket.js: usewebsocket-logic | connectWs, useWebSocket, catch
-desktop/src/index.css: styling | -
+desktop/src/developer-toolkit/logger.js: logger | getLogs, addLog, emitError, clear, subscribe
+desktop/src/developer-toolkit/networkMonitor.js: networkmonitor | clear, subscribe, useNetworkMonitor, logResponse, constructor
+desktop/src/hooks/useWebSocket.js: usewebsocket-logic | catch, connectWs, useWebSocket
 desktop/src/main.jsx: entry-point | -
 desktop/src/pages/CalendarView.jsx: calendarview-page | CalendarView
-desktop/src/pages/ChatView.jsx: chatview-page | ChatView, handleKeyDown, catch, handleReject, handleVoiceToggle
-desktop/src/pages/Dashboard.jsx: dashboard-page | Dashboard, fetchStats, catch
-desktop/src/pages/GmailView.jsx: gmailview-page | fetchEmails, GmailView
-desktop/src/pages/LogsView.jsx: logsview-page | fetchBackendLogs, fetchStateData, LogsView, catch
-desktop/src/pages/MemoryView.jsx: memoryview-page | MemoryView, handleSearch
+desktop/src/pages/ChatView.jsx: chatview-page | renderMessageContent, setMessages, ChatView, handleReject, handleVoiceToggle
+desktop/src/pages/Dashboard.jsx: dashboard-page | catch, fetchStats, Dashboard
+desktop/src/pages/GmailView.jsx: gmailview-page | GmailView, fetchEmails
+desktop/src/pages/LogsView.jsx: logsview-page | fetchStateData, catch, fetchBackendLogs, LogsView
+desktop/src/pages/MemoryView.jsx: memoryview-page | handleSearch, MemoryView
 desktop/src/pages/SettingsView.jsx: settingsview-page | SettingsView
 desktop/src/pages/TasksView.jsx: tasksview-page | TasksView
 desktop/src/services/api.js: api-service | catch, monitoredFetch
 desktop/tailwind.config.js: tailwind.config | -
 desktop/vite.config.js: vite.config | -
-docs/HVA_env_status.md: documentation | -
 haitham_voice_agent/__init__.py: __init__ | -
 haitham_voice_agent/config.py: config | validate_config, ensure_directories, resolve_model, init_gemini_mapping, resolve_gemini_model
-haitham_voice_agent/data/memory.db: asset (.db) | -
-haitham_voice_agent/data/pricing.json: config | -
 haitham_voice_agent/dispatcher.py: dispatcher | get_dispatcher, dispatch_action, register_tool, dispatch, execute_plan
-haitham_voice_agent/docs/CHANGE_RULES.md: documentation | -
-haitham_voice_agent/docs/CHECKLIST.md: documentation | -
-haitham_voice_agent/docs/CURRENT_STATE.md: documentation | -
-haitham_voice_agent/docs/PROJECT_MAP.md: documentation | -
-haitham_voice_agent/docs/TEST_COMMANDS.md: documentation | -
 haitham_voice_agent/domain/models.py: models | to_dict, from_dict, to_dict, from_dict, to_dict
 haitham_voice_agent/gui_process.py: gui_process | run_gui_process, create_window, init_dashboard_view, send_listen_command, send_text_command
 haitham_voice_agent/gui_widgets.py: gui_widgets | on_enter, on_leave, on_click, set_status, update_stats
@@ -286,40 +243,16 @@ haitham_voice_agent/tools/voice/tts.py: tts | speak, speak_to_file
 haitham_voice_agent/tools/workspace_manager.py: workspace_manager | get_project_folder, ensure_project_structure, project_notes_dir, project_tasks_file, project_attachments_dir
 haitham_voice_agent/tts.py: tts | get_tts, set_callback, speak, play_sound, speak_ar
 haitham_voice_agent/wake_word.py: wake_word | get_detector, detect, has_wake_word
-hva.log: other | -
-hva_ar_fix.log: other | -
-hva_brain.log: other | -
-hva_clean_restart.log: other | -
-hva_confirm_fix.log: other | -
-hva_debug.log: other | -
-hva_emergency_fix.log: other | -
-hva_final.log: other | -
-hva_final_attempt.log: other | -
-hva_final_fix.log: other | -
-hva_final_v2.log: other | -
-hva_full_srs.md: documentation | -
-hva_no_cache.log: other | -
-hva_restart_final.log: other | -
-hva_restart_fix.log: other | -
-hva_signature_fix.log: other | -
-hva_smart.log: other | -
-hva_ui_fix.log: other | -
 query_last_checkpoint.py: query_last_checkpoint | get_last_checkpoint
 repro_sort.py: repro_sort | test_sort
-requirements.txt: documentation | -
 reset_pricing.py: reset_pricing | reset_pricing
-response.json: config | -
 run_audit.py: run_audit | run_audit
-scripts/HVA_Debug_Launcher.command: other | -
-scripts/STT_COMPARISON_SETUP.md: documentation | -
-scripts/app_toggle.sh: other | -
 scripts/auth_all.py: auth_all | authorize_all
 scripts/auth_calendar.py: auth_calendar | -
 scripts/compare_stt.py: compare_stt | test_whisper_api, test_google_stt, test_wav2vec2, main
 scripts/create_app_bundle.py: create_app_bundle | create_app_bundle
 scripts/create_launcher.py: create_launcher | create_launcher
 scripts/health_check.py: health_check | check_ollama, check_env_vars, check_imports, main
-scripts/launch_silent.sh: other | -
 scripts/migrate_db_v1_1.py: migrate_db_v1_1 | migrate_db
 scripts/migrate_db_v1_2.py: migrate_db_v1_2 | migrate_db
 scripts/record_test_audio.py: record_test_audio | -
@@ -345,14 +278,11 @@ scripts/test_timezone_parsing.py: test_timezone_parsing | test_parsing
 scripts/test_visual_mode.py: test_visual_mode | test_visual_mode
 scripts/update_readme.py: update_readme | scan_codebase, update_readme
 scripts/verify_models.py: verify_models | verify_models
-start_hva.sh: other | -
 test_adaptive.py: test_adaptive | test_sync
 test_chat_integration.py: test_chat_integration | test_chat
 test_deep_organizer.py: test_deep_organizer | test_organizer
 test_orchestrator.py: test_orchestrator | test
 test_organizer.py: test_organizer | test_smart_organizer
-test_organizer_data/invoice_2024.txt: documentation | -
-test_organizer_data/meeting_notes.txt: documentation | -
 test_organizer_data/random_script.py: random_script | -
 test_qwen_3b.py: test_qwen_3b | test_routing, test_summarization, main
 test_rollback.py: test_rollback | test_rollback
@@ -413,7 +343,7 @@ backend: cd api && uvicorn main:app --reload
 ## CHANGES
 > 📝 RECENT CHANGES (Last 10)
 ```yaml
-- 2025-12-06 16:05: Initial Guardian scan | auto-generated
+- 2025-12-06 13:20: Initial Guardian scan | auto-generated
 ```
 
 ---

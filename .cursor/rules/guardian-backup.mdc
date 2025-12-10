@@ -1,0 +1,175 @@
+---
+description: PROJECT MEMORY - READ THIS BEFORE ANSWERING
+globs: 
+---
+
+# 🛡️ Project Guardian: HVA Memory
+
+> **DO NOT DELETE OR IGNORE THIS FILE.**
+> This file is the "Long Term Memory" of the project.
+> It contains the Source of Truth for tech stack, file structure, and current state.
+
+---
+
+## 🏗️ Tech Stack (The "No-Go" Zone)
+
+> **CRITICAL:** Do NOT suggest changes to these unless explicitly asked.
+
+| Layer | Technology | Details |
+|-------|------------|---------|
+| **Frontend** | React 19 + Vite | TailwindCSS, Lucide React |
+| **Desktop** | Electron 39 | `desktop/` folder |
+| **Backend** | Python FastAPI | `api/` folder, Uvicorn |
+| **AI/Voice** | Faster Whisper | `haitham_voice_agent/` |
+| **Database** | ChromaDB + SQLite | Vector + Graph + Relational Memory |
+
+---
+
+## 🗺️ File Map (Where things live)
+
+> **CRITICAL:** Do NOT create new files outside these conventions.
+> **CRITICAL PATH:** `/Users/haitham/development` is the PRIMARY location for all projects.
+
+```
+/Users/haitham/development/Haitham Voice Agent (HVA)/
+├── desktop/                  # Electron + React Frontend
+│   ├── src/
+│   │   ├── pages/            # UI Pages (ChatView.jsx)
+│   │   ├── components/       # Reusable UI
+│   │   ├── context/          # Global State (WebSocketContext)
+│   │   └── services/         # API Client (api.js)
+│   ├── main.js               # Electron Main Process
+│   └── package.json          # Frontend Deps
+├── api/                      # FastAPI Backend
+│   ├── routes/               # API Endpoints (voice, chat, files, checkpoints)
+│   └── main.py               # Server Entry Point
+├── haitham_voice_agent/      # Core AI Logic
+│   ├── tools/                # Tools (files, voice, memory)
+│   │   ├── memory/           # Memory System (SQLite, Vector, Graph)
+│   │   └── projects.py       # Project Registry
+│   ├── intelligence/         # AI Intelligence Layer
+│   │   ├── content_extractor.py # Smart Content Extraction
+│   │   ├── smart_summarizer.py  # Hybrid Summarization (Qwen/Gemini)
+│   │   └── file_router.py       # Auto-Index Logic
+│   ├── llm_router.py         # LLM Decision Logic
+│   └── dispatcher.py         # Tool Execution
+└── start_hva.sh              # Startup Script
+```
+
+---
+
+## 🚦 Running Now (Don't start duplicates!)
+
+| Service | Port | Command | Status |
+|---------|------|---------|--------|
+| **Backend** | `8765` | `./start_hva.sh` | ✅ Running |
+| **Frontend** | `5173` | `npm run dev` | ✅ Running |
+
+---
+
+## 📝 Change Management Rules
+
+### 1. PURE_UI_STYLE (Low Risk)
+*Examples: Colors, spacing, text changes, CSS tweaks.*
+- **Action:** Just do it. No deep planning needed.
+
+### 2. UI_BEHAVIOUR_TWEAK (Medium Risk)
+*Examples: Button clicks, form validation, loading states.*
+- **Action:** Check `api.js` first. Ensure backend supports it.
+
+### 3. NEW_FEATURE_FLOW (High Risk)
+*Examples: New page, new API route, new tool.*
+- **Action:**
+  1. **Plan:** Create/Update `implementation_plan.md`
+  2. **Review:** Ask user for approval
+  3. **Execute:** Implement step-by-step
+
+---
+
+## 🐛 Known Issues (Don't rediscover them)
+
+- **Voice/Chat Sync:** Bot sometimes responds before transcript appears (Fix in progress).
+- **Microphone:** Sometimes gets stuck if stop signal isn't received (Fixed via WebSocketContext).
+
+---
+
+## 🔄 Recent Changes (Context)
+
+- **[2025-12-03]** Added `files` tool and API route for opening files.
+- **[2025-12-03]** Fixed `FileTools` to include directories and handle aliases (download -> Downloads).
+- **[2025-12-05]** **Cost Safety Layer**: Implemented `OptimizationGuard` to prevent redundant LLM calls ($0.00 for unchanged files). Fixed `index_file` hash bug.
+- **[2025-12-05]** **Free Organization**: Added `SimpleOrganizer` for rule-based, zero-cost file organization.
+- **[2025-12-05]** **Cost Transparency**: Added detailed Gemini vs GPT cost breakdown in History Widget.
+- **[2025-12-05]** **Strict Organization**: Enforced rules: `.app` -> `Applications`, `.dmg` -> `Software`, Docs -> `Documents`.
+- **[2025-12-05]** **Self-Healing**: Added `verify_integrity.py` to prevent broken startups.
+- **[2025-12-05]** **Adaptive Learning (Mentor Strategy)**: 
+    - **Phase 1**: Implemented SHA-256 digital fingerprints for all files (upgraded from MD5). Added `audit_fingerprints()` method to backfill 166 existing files.
+    - **Phase 2**: Created `learning_events` table with 13 fields including confidence (REAL, 1.0 default), times_applied (INTEGER), last_feedback (TEXT). Added indexes on file_hash and confidence.
+    - **Phase 3**: Integrated confidence-based categorization in `DeepOrganizer._analyze_file()`. Queries learning_events before LLM call. If confidence ≥0.8, applies pattern automatically (cost=$0.00). If <0.5, falls back to LLM.
+    - **Phase 4**: Implemented passive feedback loop in `AdaptiveSync.sync_knowledge_base()`. Checks auto_applied events from last 7 days. If file stayed → confidence +0.1. If moved → confidence -0.3.
+    - **Files Modified**: `adaptive_sync.py` (248 lines), `deep_organizer.py` (716 lines), `sqlite_store.py` (630 lines).
+    - **Database Stats**: 15 manual_move events logged, avg confidence 1.0, 0 auto_applied events yet.
+    - **Result**: System now learns from YOUR manual moves, not generic AI patterns. Zero-cost categorization for high-confidence patterns.
+- **[2025-12-05]** **Qwen Orchestrator Enhancement (Smart Mode Selection)**:
+    - Enhanced `ollama_orchestrator.py` to intelligently determine organization mode based on request keywords.
+    - **Simple Mode** (FREE): Triggered by keywords like "رتب", "sort", "حسب التاريخ", "by date", "نقل", "move" → Uses `SimpleOrganizer`.
+    - **Deep Mode** (AI): Triggered by keywords like "صنف", "categorize", "نظم ذكي", "organize intelligently" → Uses `DeepOrganizer`.
+    - **Result**: Qwen now acts as true orchestrator, routing simple requests to zero-cost handlers and complex requests to AI.
+    - **Example**: "رتب الملفات في مجلد Coaching حسب التاريخ" → `mode="simple"` → $0.00 cost.
+
+## 📏 Organization Rules (Strict)
+1.  **Applications**: `.app` bundles MUST go to `~/Applications`.
+2.  **Software**: Installers (`.dmg`, `.pkg`) MUST go to `~/Software`.
+3.  **Documents**: Read-only files go to `~/Documents/{Category}`.
+4.  **Safety**: Never delete without confirmation.
+5.  **Cost**: Zero-cost for unchanged files (OptimizationGuard).
+- **[2025-12-03]** Created `WebSocketContext` for global voice state.
+- **[2025-12-03]** Updated Dashboard header font size to `text-5xl` (PURE_UI_STYLE).
+- **[2025-12-03]** Updated ChatView header font size to `text-5xl` (PURE_UI_STYLE).
+
+---
+
+## 💬 When Unsure
+
+> "I see [X] in the project memory. Before I proceed:
+> - Is [server] currently running on port [PORT]?
+> - Should I modify [existing file] or create new?"
+
+**Never assume. Always verify.**
+
+
+## 📝 Recent Changes
+
+| Date | Type | Description | Files |
+| 2025-12-06 01:45 | FEATURE_ADD | **Ollama Context & History**: Implemented short-term memory (10 messages) for Local Model (Qwen). Enables context-aware commands like "Sort them" or "Confirm it". | haitham_voice_agent/ollama_orchestrator.py |
+| 2025-12-06 01:30 | BUG_FIX | **API Parameter Passing**: Fixed `api/routes/chat.py` to correctly pass `mode` and `instruction` from Orchestrator to Tools. Solved "Deep Mode" fallback issue. | api/routes/chat.py |
+| 2025-12-06 01:15 | FEATURE_ADD | **Direct Date Sorting (Simple Mode)**: Implemented fast, deterministic date sorting (Year/Month) triggered by "Sort by date" instruction. Bypasses AI analysis for speed. | haitham_voice_agent/tools/simple_organizer.py, haitham_voice_agent/tools/files.py |
+| 2025-12-06 01:00 | BUG_FIX | **Media File Processing**: Updated `DeepOrganizer` to process media files (audio/video) even without text content, using metadata instead. | haitham_voice_agent/tools/deep_organizer.py |
+| 2025-12-05 23:20 | FEATURE_ADD | **Qwen Orchestrator Enhancement (Smart Mode Selection)**: Enhanced `ollama_orchestrator.py` to intelligently determine organization mode. Simple requests (sort, move, by date) → `mode="simple"` → SimpleOrganizer (FREE). Complex requests (categorize, organize intelligently) → `mode="deep"` → DeepOrganizer (AI). Qwen now acts as true orchestrator, routing requests to appropriate handlers based on keywords. Example: "رتب الملفات في مجلد Coaching حسب التاريخ" → $0.00 cost. | haitham_voice_agent/ollama_orchestrator.py |
+| 2025-12-05 22:50 | FEATURE_ADD | **Adaptive Learning System (Mentor Strategy)**: Implemented complete 4-phase learning system: (1) SHA-256 digital fingerprints for all files, (2) `learning_events` table with confidence scoring, (3) Confidence-based categorization in DeepOrganizer (≥0.8 auto-apply, <0.5 LLM fallback), (4) Passive feedback loop tracking file stability. System now learns from user's manual moves with self-adjusting confidence scores. | haitham_voice_agent/intelligence/adaptive_sync.py, haitham_voice_agent/tools/deep_organizer.py, haitham_voice_agent/tools/memory/storage/sqlite_store.py |
+| 2025-12-05 20:00 | FEATURE_ADD | **Memory UI Overhaul (v2.5)**: Redesigned Memory Page with large visualizations for SQL, Vector, and Graph layers. Added detailed Arabic explanations and fixed stats counting logic. | desktop/src/pages/MemoryView.jsx, haitham_voice_agent/tools/memory/storage/vector_store.py, haitham_voice_agent/tools/memory/storage/graph_store.py |
+| 2025-12-05 19:50 | BUG_FIX | **File Tree Auto-Refresh**: Implemented 10s polling interval in `FileSystemTree` to ensure the UI stays in sync with local file changes automatically. | desktop/src/components/dashboard/FileSystemTree.jsx |
+| 2025-12-05 19:45 | BUG_FIX | **Gemini Pricing Fix**: Added pricing definitions for `gemini-2.5-pro` and `gemini-pro` to fix zero-cost tracking issue. | haitham_voice_agent/data/pricing.json, haitham_voice_agent/token_tracker.py |
+| 2025-12-05 19:35 | FEATURE_ADD | **Live Logs UI**: Added `TaskProgressWidget` to Dashboard for real-time visibility of LLM actions (Gemini/GPT) and task progress. Updated `LLMRouter` and `DeepOrganizer` to broadcast structured events. | desktop/src/components/dashboard/TaskProgressWidget.jsx, haitham_voice_agent/llm_router.py, haitham_voice_agent/tools/deep_organizer.py |
+| 2025-12-06 03:30 | CRITICAL_FIX | **Checkpoint System Initialization**: Fixed missing database table creation by adding `ensure_initialized()` to `CheckpointManager`. Replaced silent error handling with CRITICAL logging and user warnings when checkpoint creation fails. | haitham_voice_agent/tools/checkpoint_manager.py, haitham_voice_agent/tools/simple_organizer.py, haitham_voice_agent/tools/deep_organizer.py, api/routes/chat.py |
+| 2025-12-06 03:10 | BUG_FIX | **Rollback Display Fix**: Fixed frontend `CheckpointsWidget` to correctly access `result.data.success` instead of `result.success` for rollback confirmation popup. | desktop/src/components/dashboard/CheckpointsWidget.jsx |
+| 2025-12-06 03:00 | FEATURE_ADD | **Flat Date Sort**: Implemented non-folder date sorting in `SimpleOrganizer`. "Sort by Date" now renames files with date prefix (YYYY-MM-DD_filename) instead of creating Year/Month folders, unless "folder" keyword is used. | haitham_voice_agent/tools/simple_organizer.py |
+| 2025-12-06 02:50 | BUG_FIX | **Confirmation Keywords**: Added missing Arabic confirmation keywords ("نعم", "ايوه", "أجل", "yeah") to `OllamaOrchestrator` to fix plan execution flow. | haitham_voice_agent/ollama_orchestrator.py |
+| 2025-12-06 02:45 | BUG_FIX | **Execution Report Formatting**: Fixed "Success: undefined" issue by properly formatting execution reports in `chat.py` to display Arabic messages like "✅ تم تنفيذ العملية بنجاح على 10 ملف." | api/routes/chat.py |
+| 2025-12-04 14:00 | BUG_FIX_FLOW | Fixed **Action not found** error for "Organize Documents". Updated `ollama_orchestrator.py` to include `organize_documents` intent and mapped `open_folder` to `open_file` in `chat.py`. | haitham_voice_agent/ollama_orchestrator.py, api/routes/chat.py |
+| 2025-12-04 13:50 | BUG_FIX_FLOW | Fixed **File Tree Interaction**: Added click handler to `FileSystemTree` to open files using the system default app via `/files/open` API. | desktop/src/components/dashboard/FileSystemTree.jsx |
+| 2025-12-04 13:40 | BUG_FIX_FLOW | Fixed **File Tree API**: Added missing `/files` prefix to router in `main.py` and added `/open` endpoint. Rearranged **Dashboard Layout**: System Activity and Usage Widget are now side-by-side, with File Tree full-width at the bottom. | api/main.py, api/routes/files.py, desktop/src/pages/Dashboard.jsx |
+| 2025-12-04 13:25 | NEW_FEATURE_FLOW | Enhanced **File System Tree** with Lazy Loading and Refresh. Now supports exploring the entire file system efficiently by fetching children on demand. | desktop/src/components/dashboard/FileSystemTree.jsx |
+| 2025-12-04 13:10 | NEW_FEATURE_FLOW | Implemented- **File System Tree**: Added real-time file tree widget to Dashboard (`/files/tree` endpoint). - **Enhanced Plan Visualization**: Updated Chat UI to show "Before -> After" tree diff for organization plans. - **Deep Organizer Memory**: Added automatic memory indexing for organized files. | desktop/src/components/dashboard/FileSystemTree.jsx, desktop/src/pages/Dashboard.jsx, desktop/src/pages/ChatView.jsx, haitham_voice_agent/tools/files.py |
+| 2025-12-04 12:30 | NEW_FEATURE_FLOW | Implemented Deep Documents Organizer. Added DeepOrganizer class for content-based renaming and reorganization with Dry Run mode. | haitham_voice_agent/tools/deep_organizer.py, haitham_voice_agent/tools/files.py, api/routes/files.py |
+| 2025-12-04 12:10 | NEW_FEATURE_FLOW | Implemented Tokenization Tracker. Added TokenTracker backend, SQLite storage, API endpoints, and Frontend Usage Widget for real-time cost monitoring. | haitham_voice_agent/token_tracker.py, desktop/src/components/dashboard/UsageWidget.jsx |
+| 2025-12-04 11:58 | NEW_FEATURE_FLOW | Implemented Smart Downloads Organizer. Added 72h cleanup rule and content-based categorization (LLM) with subfolder support (Category/Subcategory). | haitham_voice_agent/tools/smart_organizer.py |
+| 2025-12-04 11:34 | NEW_FEATURE_FLOW | Implemented Smart Content Extraction. Added ContentExtractor and SmartSummarizer (Qwen/Gemini). Updated MemorySystem to ingest full content and generate summaries. Fixed VectorStore query syntax. | haitham_voice_agent/intelligence/content_extractor.py, haitham_voice_agent/intelligence/smart_summarizer.py, haitham_voice_agent/tools/memory/memory_system.py |
+| 2025-12-04 11:00 | NEW_FEATURE_FLOW | Implemented Auto-Index Critical Project Files. Added GraphStore, FileRouter, and extended ProjectRegistry. Created api/routes/files.py for scanning endpoints. | haitham_voice_agent/tools/projects.py, haitham_voice_agent/tools/memory/storage/graph_store.py, haitham_voice_agent/intelligence/file_router.py |
+| 2025-12-04 10:06 | NEW_FEATURE_FLOW | Implemented Project Registry and File Index. Created projects.py, updated memory_system.py with file indexing, and integrated files.py to auto-index moved files. | haitham_voice_agent/tools/projects.py, haitham_voice_agent/tools/memory/memory_system.py, haitham_voice_agent/tools/memory/storage/sqlite_store.py |
+| 2025-12-04 09:46 | UI_BEHAVIOUR_TWEAK | Implemented confirmation flow (Approve/Reject buttons) for destructive file operations (move_file). Updated ChatView, chat API, and files tool. | haitham_voice_agent/tools/files.py, api/routes/chat.py, desktop/src/pages/ChatView.jsx |
+| 2025-12-04 09:04 | UI_BEHAVIOUR_TWEAK | Added move_file capability to FileTools and SystemTools (delegated) to enable file organization. | haitham_voice_agent/tools/files.py, haitham_voice_agent/tools/system_tools.py |
+| 2025-12-04 08:54 | BUG_FIX | Fixed file sorting by date/size and resolved 'Action not found' for tasks.add_task. | haitham_voice_agent/tools/files.py, haitham_voice_agent/ollama_orchestrator.py, api/routes/chat.py |
+| 2025-12-04 08:43 | UI_BEHAVIOUR_TWEAK | Improved file listing response: added localization and passed full file data to frontend. | api/routes/chat.py |
+| 2025-12-04 08:37 | NEW_FEATURE_FLOW | Updated LLM Router and Tools to propagate Gemini/GPT model names to UI. | haitham_voice_agent/llm_router.py, haitham_voice_agent/tools/docs.py, api/routes/chat.py |
+| 2025-12-04 08:37 | NEW_FEATURE_FLOW | Integrated Ollama Orchestrator and added model name display to Chat UI. | api/routes/chat.py, desktop/src/pages/ChatView.jsx |

@@ -144,27 +144,32 @@ Source: Voice
         try:
             await self.ensure_initialized()
             
-            results = await self.memory_system.search_memories(query_text, limit=3)
+            # Search Memories
+            memories = await self.memory_system.search_memories(query_text, limit=3)
             
-            if not results:
-                return "لم أجد أي ملاحظات مرتبطة." if language == "ar" else "I couldn't find any relevant memories."
+            # Search Files (transliteration is now handled inside memory_system)
+            files = await self.memory_system.search_files(query_text, limit=3)
+            
+            if not memories and not files:
+                return "لم أجد أي ملاحظات أو ملفات مرتبطة." if language == "ar" else "I couldn't find any relevant memories or files."
             
             # Format response
+            response = ""
+            
             if language == "ar":
-                response = f"وجدت {len(results)} نتائج. "
-                top = results[0]
-                response += f"الأهم هي من مشروع {top.project}: {top.ultra_brief}. "
-                if len(results) > 1:
-                    topics = [r.topic for r in results[1:]]
-                    # Simple join for Arabic
-                    response += "وجدت أيضاً ملاحظات عن: " + "، ".join(topics)
+                if memories:
+                    response += f"وجدت {len(memories)} ملاحظات. الأهم: {memories[0].ultra_brief}. "
+                if files:
+                    f = files[0]
+                    name = f.get('path', '').split('/')[-1]
+                    response += f"ووجدت {len(files)} ملفات. أبرزها ملف '{name}'."
             else:
-                response = f"I found {len(results)} relevant items. "
-                top = results[0]
-                response += f"The most relevant is from {top.project}: {top.ultra_brief}. "
-                if len(results) > 1:
-                    response += "I also found related notes about " + \
-                               ", ".join([r.topic for r in results[1:]]) + "."
+                if memories:
+                    response += f"Found {len(memories)} notes. Top one: {memories[0].ultra_brief}. "
+                if files:
+                    f = files[0]
+                    name = f.get('path', '').split('/')[-1]
+                    response += f"Also found {len(files)} files. Top match: '{name}'."
                            
             return response
             

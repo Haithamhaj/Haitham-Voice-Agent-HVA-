@@ -178,10 +178,13 @@ class SimpleOrganizer:
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 
                 if dst.exists():
+                    # Rename with timestamp to avoid overwrite
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     dst = dst.parent / f"{dst.stem}_{timestamp}{dst.suffix}"
                     
+                logger.info(f"Moving: {src} -> {dst}")
                 shutil.move(str(src), str(dst))
+                logger.info(f"Success: Moved to {dst}")
                 report["success"] += 1
                 
                 operations_log.append({

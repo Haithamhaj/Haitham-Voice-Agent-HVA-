@@ -156,7 +156,7 @@ const MemoryView = () => {
                     </div>
                     <div className="mt-6 text-sm text-hva-dim leading-relaxed max-w-3xl">
                         <p>
-                            تستخدم هذه الطبقة لربط الكيانات ببعضها (مثلاً: "هيثم" -> "يعمل على" -> "مشروع X"). هذا يسمح للنظام بالإجابة على أسئلة معقدة تتطلب القفز بين المعلومات. الرسم أدناه يوضح شبكة العلاقات النشطة حالياً.
+                            تستخدم هذه الطبقة لربط الكيانات ببعضها (مثلاً: "هيثم" &rarr; "يعمل على" &rarr; "مشروع X"). هذا يسمح للنظام بالإجابة على أسئلة معقدة تتطلب القفز بين المعلومات. الرسم أدناه يوضح شبكة العلاقات النشطة حالياً.
                         </p>
                     </div>
                 </div>
@@ -209,14 +209,16 @@ const MemoryView = () => {
                     {searchResults.length > 0 ? (
                         searchResults.map((item, index) => (
                             <div key={index} className="p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-hva-accent/50 transition-colors">
-                                <p className="text-hva-cream leading-relaxed">{item.content || JSON.stringify(item)}</p>
+                                <p className="text-hva-cream leading-relaxed">
+                                    {item.content || item.text || item.summary || (typeof item === 'string' ? item : JSON.stringify(item))}
+                                </p>
                                 <div className="mt-3 flex gap-2">
-                                    {item.metadata?.type && (
+                                    {(item.metadata?.type || item.type) && (
                                         <span className="text-xs px-2 py-1 rounded bg-white/10 text-hva-muted uppercase tracking-wider">
-                                            {item.metadata.type}
+                                            {item.metadata?.type || item.type}
                                         </span>
                                     )}
-                                    {item.score && (
+                                    {item.score !== undefined && (
                                         <span className="text-xs px-2 py-1 rounded bg-green-500/10 text-green-400">
                                             Match: {Math.round(item.score * 100)}%
                                         </span>
