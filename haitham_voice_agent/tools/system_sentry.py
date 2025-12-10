@@ -32,7 +32,8 @@ class SystemSentry:
             
             # Memory
             mem = psutil.virtual_memory()
-            ram_percent = mem.percent
+            # Calculate percent from used/total to match the details display (Users expect Used/Total, not Memory Pressure)
+            ram_percent = round((mem.used / mem.total) * 100, 1)
             ram_used_gb = round(mem.used / (1024**3), 2)
             ram_total_gb = round(mem.total / (1024**3), 2)
             

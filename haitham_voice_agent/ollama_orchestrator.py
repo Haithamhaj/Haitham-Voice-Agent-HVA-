@@ -275,9 +275,49 @@ CRITICAL RULES
                         return {"type": "delegate", "delegate_to": "gpt", "reason": "json_parse_error"}
                         
         except Exception as e:
-            logger.error(f"Ollama connection failed: {e}")
             # Fallback to GPT if Ollama is down
             return {"type": "delegate", "delegate_to": "gpt", "reason": "connection_failed"}
+
+    async def extract_task_details(self, text: str) -> Dict[str, Any]:
+        """
+        Extract task details (title, due_date) from natural language using Qwen.
+        """
+        import datetime
+        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        prompt = f"""
+        System Time: {now_str}
+        User Request: "{text}"
+        
+        Task: Extract 'title' and 'due_date' (ISO 8601) from the request.
+        Rules:
+        - title: The main task description.
+        - due_date: Future date/time in ISO 8601 format (e.g., 2025-12-10T18:00:00).
+        - If no time specified, use null.
+        - Respond in JSON ONLY: {{ "title": "...", "due_date": "..." }}
+        """
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                payload = {
+                    "model": self.model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "stream": False,
+                    "format": "json",
+                    "options": {"temperature": 0.1}
+                }
+                
+                async with session.post(f"{self.base_url}/api/chat", json=payload) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        content = result.get("message", {}).get("content", "")
+                        return json.loads(content)
+                    
+        except Exception as e:
+            logger.error(f"Task extraction failed: {e}")
+            
+        # Fallback
+        return {"title": text, "due_date": None}
 
 # Singleton instance
 _orchestrator_instance: Optional[OllamaOrchestrator] = None

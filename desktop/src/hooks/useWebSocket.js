@@ -11,7 +11,12 @@ export const useWebSocket = () => {
             if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
             logger.info('Attempting to connect to WebSocket...');
-            const ws = new WebSocket('ws://localhost:8765/ws');
+
+            const wsUrl = import.meta.env.DEV
+                ? 'ws://localhost:8765/ws'
+                : `ws://${window.location.host}/ws`;
+
+            const ws = new WebSocket(wsUrl);
             wsRef.current = ws;
 
             ws.onopen = () => {

@@ -48,10 +48,18 @@ class TaskManager:
     def create_task(self, title: str, 
                     project_id: str = "inbox",
                     description: str = "",
-                    due_date: Optional[datetime] = None,
+                    due_date: Any = None,
                     language: str = "ar") -> Task:
         """Create a new task"""
         now = datetime.now().isoformat()
+        
+        # Safe strict due_date handling
+        final_due_date = None
+        if due_date:
+            if isinstance(due_date, datetime):
+                final_due_date = due_date.isoformat()
+            elif isinstance(due_date, str):
+                final_due_date = due_date # Assume ISO or handle parsing if needed later
         
         task = Task(
             id=str(uuid.uuid4()),
@@ -63,7 +71,7 @@ class TaskManager:
             created_at=now,
             updated_at=now,
             language=language,
-            due_date=due_date.isoformat() if due_date else None
+            due_date=final_due_date
         )
         
         tasks = self._load_tasks(project_id)

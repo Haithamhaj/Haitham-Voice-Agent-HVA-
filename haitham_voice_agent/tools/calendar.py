@@ -216,8 +216,15 @@ class CalendarTools:
             # We should be careful with timezones. dateparser returns naive or aware.
             # Let's assume system local time for now.
             
-            time_min_iso = time_min.isoformat() + 'Z'
-            time_max_iso = time_max.isoformat() + 'Z'
+            # Convert to ISO format
+            # Ensure we have timezone aware objects
+            if time_min.tzinfo is None:
+                time_min = time_min.astimezone()
+            if time_max.tzinfo is None:
+                time_max = time_max.astimezone()
+                
+            time_min_iso = time_min.isoformat()
+            time_max_iso = time_max.isoformat()
             
             events_result = self.service.events().list(
                 calendarId='primary',
@@ -300,11 +307,21 @@ class CalendarTools:
             # We check a small window around the start time
             time_min = start_dt
             time_max = start_dt + datetime.timedelta(minutes=duration_minutes)
+
+            # Ensure timezones are handled correctly
+            # If naive, assume local system time and convert to aware
+            if time_min.tzinfo is None:
+                time_min = time_min.astimezone()
+            if time_max.tzinfo is None:
+                time_max = time_max.astimezone()
+            
+            time_min_iso = time_min.isoformat()
+            time_max_iso = time_max.isoformat()
             
             events_result = self.service.events().list(
                 calendarId='primary',
-                timeMin=time_min.isoformat() + 'Z',
-                timeMax=time_max.isoformat() + 'Z',
+                timeMin=time_min_iso,
+                timeMax=time_max_iso,
                 singleEvents=True
             ).execute()
             

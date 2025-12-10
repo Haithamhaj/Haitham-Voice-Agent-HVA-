@@ -116,7 +116,7 @@ const ChatView = () => {
             console.error("Chat error:", error);
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: 'عذراً، حدث خطأ في الاتصال.'
+                content: `عذراً، حدث خطأ في الاتصال: ${error.message} (${error.name || 'Unknown Log'})`
             }]);
         } finally {
             setIsProcessing(false);

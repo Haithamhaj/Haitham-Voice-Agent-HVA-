@@ -39,9 +39,7 @@ async def startup_event():
     asyncio.create_task(AdaptiveSync().sync_knowledge_base())
     logger.info("Memory System Initialized")
 
-@app.get("/")
-async def root():
-    return {"message": "HVA API is running"}
+
 
 @app.get("/health")
 async def health_check():
@@ -73,7 +71,38 @@ app.include_router(tasks.router)
 app.include_router(system.router)
 app.include_router(files.router, prefix="/files", tags=["files"])
 app.include_router(usage.router)
+app.include_router(usage.router)
 app.include_router(checkpoints.router)
+
+# Mount Static Files (Frontend)
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Path to the built frontend
+frontend_path = project_root / "desktop" / "dist_renderer"
+
+if frontend_path.exists():
+    app.mount("/assets", StaticFiles(directory=str(frontend_path / "assets")), name="assets")
+    
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        # Allow API routes to pass through (already handled above)
+        if full_path.startswith("api/") or full_path.startswith("ws"):
+            return None # Should be handled by other routes
+            
+        # Serve index.html for SPA routing
+        if "." not in full_path:
+            return FileResponse(str(frontend_path / "index.html"))
+            
+        # Serve specific file if exists
+        file_path = frontend_path / full_path
+        if file_path.exists():
+            return FileResponse(str(file_path))
+        
+        # Fallback to index.html
+        return FileResponse(str(frontend_path / "index.html"))
+else:
+    logger.warning(f"Frontend build not found at {frontend_path}. Run 'npm run build' in desktop/")
 
 if __name__ == "__main__":
     import uvicorn

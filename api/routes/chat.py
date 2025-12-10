@@ -212,8 +212,8 @@ async def chat(request: ChatRequest):
                 response_text = str(result.get("message") or result)
                 is_arabic = any('\u0600' <= char <= '\u06FF' for char in text)
                 
-                if result.get("success") is not None and isinstance(result.get("success"), int):
-                     # This is an execution report
+                if result.get("success") is not None and type(result.get("success")) is int:
+                     # This is an execution report (strict int check to avoid bools)
                      success_count = result.get("success", 0)
                      failed_count = result.get("failed", 0)
                      checkpoint_failed = result.get("checkpoint_failed", False)
@@ -310,10 +310,42 @@ async def chat(request: ChatRequest):
             elif action == "list_tasks":
                 step = {"tool": "tasks", "action": "list_tasks", "params": {}}
             elif action == "create_task":
-                 # Extract task content if possible, or pass raw text
-                 step = {"tool": "tasks", "action": "add_task", "params": {"description": text}}
+                 # Extract task content using local Qwen (Zero Cost)
+                 task_details = await ollama.extract_task_details(text)
+                 title = task_details.get("title", text)
+                 due_date = task_details.get("due_date")
+                 
+                 step = {
+                     "tool": "tasks", 
+                     "action": "add_task", 
+                     "params": {
+                         "title": title,
+                         "due_date": due_date
+                     }
+                 }
+                 
+                 # 1.5. If date exists, ALSO create in Calendar (User Request)
+                 if due_date:
+                     logger.info(f"Syncing task to Calendar: {title} at {due_date}")
+                     try:
+                         # We need to dispatch a separate event creation
+                         cal_step = {
+                             "tool": "calendar",
+                             "action": "create_event",
+                             "params": {
+                                 "summary": title,
+                                 "start_time": due_date,
+                                 "duration_minutes": 60 # Default duration
+                             }
+                         }
+                         # Dispatch immediately (don't wait for return, just fire and forget or await?)
+                         # Better await to confirm success
+                         cal_result = await dispatcher.dispatch(cal_step)
+                         logger.info(f"Calendar sync result: {cal_result}")
+                     except Exception as e:
+                         logger.error(f"Failed to sync to calendar: {e}")
             elif action == "tasks.add_task": # Handle potential LLM hallucinated action name
-                 step = {"tool": "tasks", "action": "add_task", "params": {"description": text}}
+                 step = {"tool": "tasks", "action": "add_task", "params": {"title": text}}
             elif action == "system.move_file" or action == "files.move_file":
                  # Map move_file hallucination to files tool
                  step = {"tool": "files", "action": "move_file", "params": params}
