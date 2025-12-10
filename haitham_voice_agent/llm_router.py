@@ -462,7 +462,8 @@ JSON Response:
         system_instruction: Optional[str] = None,
         temperature: float = 0.1,
         response_format: Optional[str] = None,
-        usage_context: Optional[Dict[str, Any]] = None
+        usage_context: Optional[Dict[str, Any]] = None,
+        model: Optional[str] = None  # NEW: Allow overriding model
     ) -> Dict[str, str]:
         """
         Generate response using Local LLM (Ollama/Qwen)
@@ -472,11 +473,12 @@ JSON Response:
             system_instruction: System instruction
             temperature: Sampling temperature
             response_format: "json_object" for JSON responses
+            model: Optional model name to override default (e.g. for comparison)
             
         Returns:
             dict: {"content": str, "model": str}
         """
-        model_name = Config.OLLAMA_MODEL
+        model_name = model if model else Config.OLLAMA_MODEL
         logger.info(f"Generating with Local LLM ({model_name})...")
         
         try:

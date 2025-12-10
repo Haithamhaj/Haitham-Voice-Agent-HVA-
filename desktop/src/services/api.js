@@ -94,6 +94,20 @@ export const api = {
         const response = await fetch(`${API_BASE_URL}/files/tree?path=${encodeURIComponent(path)}&depth=${depth}`);
         if (!response.ok) throw new Error('Failed to fetch file tree');
         return response.json();
-    }
+    },
+
+    // Fine-Tuning Lab
+    finetuneStatus: () => monitoredFetch('/finetune/status'),
+    finetunePreview: (limit = 20) => monitoredFetch(`/finetune/dataset/preview?limit=${limit}`),
+    finetuneCompare: (prompt) => monitoredFetch('/finetune/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+    }),
+    finetuneChat: (model_provider, messages) => monitoredFetch('/finetune/tutor-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model_provider, messages })
+    })
 };
 

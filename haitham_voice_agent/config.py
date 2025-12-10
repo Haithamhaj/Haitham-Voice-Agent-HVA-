@@ -138,6 +138,16 @@ class Config:
     # STT settings
     STT_LANGUAGE_AR: str = "ar-SA"
     STT_LANGUAGE_EN: str = "en-US"
+
+    # ==================== FINE-TUNING LAB CONFIG ====================
+    FINETUNE_DATASET_PATH: str = "data/dataset_hva_qwen_routing.jsonl"
+    FINETUNE_MODEL_PATH: str = "models/hva_qwen_routing_lora"
+    FINETUNE_BASE_MODEL: str = "qwen2.5:3b"
+    FINETUNE_TRAINED_MODEL: str = "hva-qwen-routing-v1"
+
+    # ==================== LOGGING CONFIG ====================
+    # Enable structured logging for routing dataset collection
+    LOG_ROUTING_CLASSIFICATIONS: bool = True
     
     # ==================== VOICE & WHISPER CONFIG ====================
     

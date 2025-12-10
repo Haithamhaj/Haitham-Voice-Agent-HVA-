@@ -270,6 +270,12 @@ CRITICAL RULES
                         self.history.append({"role": "user", "content": user_input})
                         self.history.append({"role": "assistant", "content": content})
                         
+                        # DATASET COLLECTION LOGGING
+                        if Config.LOG_ROUTING_CLASSIFICATIONS:
+                            # Log structured pair for dataset building
+                            logger.info(f"ROUTING INPUT: {user_input}")
+                            logger.info(f"ROUTING OUTPUT: {content}")
+                        
                         # Keep history manageable (last 10 messages)
                         if len(self.history) > 10:
                             self.history = self.history[-10:]

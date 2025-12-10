@@ -65,7 +65,7 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
 
-from api.routes import voice, memory, gmail, calendar, tasks, system, chat, files, usage, checkpoints
+from api.routes import voice, memory, gmail, calendar, tasks, system, chat, files, usage, checkpoints, finetune
 
 # Include routers
 app.include_router(voice.router)
@@ -79,6 +79,7 @@ app.include_router(files.router, prefix="/files", tags=["files"])
 app.include_router(usage.router)
 app.include_router(usage.router)
 app.include_router(checkpoints.router)
+app.include_router(finetune.router)
 
 # Mount Static Files (Frontend)
 from fastapi.staticfiles import StaticFiles

@@ -9,6 +9,7 @@ import TasksView from './pages/TasksView';
 import SettingsView from './pages/SettingsView';
 import ChatView from './pages/ChatView';
 import MemoryView from './pages/MemoryView';
+import FinetuneLab from './pages/FinetuneLab';
 import LogsView from './pages/LogsView';
 import VoiceOverlay from './components/voice/VoiceOverlay';
 import Toast from './components/common/Toast';
@@ -31,6 +32,7 @@ const AppContent = () => {
             <Route path="/" element={<Dashboard />} />
             <Route path="/chat" element={<ChatView />} />
             <Route path="/memory" element={<MemoryView />} />
+            <Route path="/finetune-lab" element={<FinetuneLab />} />
             <Route path="/gmail" element={<GmailView />} />
             <Route path="/calendar" element={<CalendarView />} />
             <Route path="/tasks" element={<TasksView />} />
