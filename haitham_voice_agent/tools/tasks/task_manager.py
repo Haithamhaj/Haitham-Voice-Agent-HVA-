@@ -30,7 +30,7 @@ class TaskManager:
                 return [Task.from_dict(t) for t in data]
         except Exception as e:
             logger.error(f"Failed to load tasks for {project_id}: {e}")
-            return []
+            raise e
             
     def _save_tasks(self, project_id: str, tasks: List[Task]):
         """Save tasks to a project's tasks.json"""
@@ -44,6 +44,7 @@ class TaskManager:
                 json.dump([t.to_dict() for t in tasks], f, ensure_ascii=False, indent=2)
         except Exception as e:
             logger.error(f"Failed to save tasks for {project_id}: {e}")
+            raise e
 
     def create_task(self, title: str, 
                     project_id: str = "inbox",

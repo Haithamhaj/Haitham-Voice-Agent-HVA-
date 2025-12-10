@@ -448,7 +448,86 @@ JSON Response:
             response_format="json_object"
         )
         
-        return json.loads(response)
+        response = await self.generate_with_gpt(
+            prompt=prompt,
+            temperature=0.3,
+            response_format="json_object"
+        )
+        
+        return json.loads(response["content"])
+
+    async def generate_with_local(
+        self,
+        prompt: str,
+        system_instruction: Optional[str] = None,
+        temperature: float = 0.1,
+        response_format: Optional[str] = None,
+        usage_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, str]:
+        """
+        Generate response using Local LLM (Ollama/Qwen)
+        
+        Args:
+            prompt: User prompt
+            system_instruction: System instruction
+            temperature: Sampling temperature
+            response_format: "json_object" for JSON responses
+            
+        Returns:
+            dict: {"content": str, "model": str}
+        """
+        model_name = Config.OLLAMA_MODEL
+        logger.info(f"Generating with Local LLM ({model_name})...")
+        
+        try:
+            messages = []
+            if system_instruction:
+                messages.append({"role": "system", "content": system_instruction})
+            
+            messages.append({"role": "user", "content": prompt})
+            
+            # Broadcast Start
+            await manager.broadcast({
+                "type": "llm_start",
+                "model": "Local (Qwen)",
+                "task": "Processing",
+                "details": f"Model: {model_name}"
+            })
+            
+            # Configure OpenAI client for Ollama
+            client = openai.AsyncOpenAI(
+                base_url=f"{Config.OLLAMA_BASE_URL}/v1",
+                api_key="ollama"  # Required but ignored
+            )
+            
+            kwargs = {
+                "model": model_name,
+                "messages": messages,
+                "temperature": temperature,
+            }
+            
+            if response_format == "json_object":
+                kwargs["response_format"] = {"type": "json_object"}
+            
+            response = await client.chat.completions.create(**kwargs)
+            result = response.choices[0].message.content
+            
+            logger.debug(f"Local response: {result[:100]}...")
+            
+            # Broadcast End
+            await manager.broadcast({
+                "type": "llm_end",
+                "model": "Local (Qwen)",
+                "status": "success",
+                "cost": 0.0  # Free!
+            })
+            
+            return {"content": result, "model": model_name, "usage": {"cost": 0.0}}
+            
+        except Exception as e:
+            logger.error(f"Local generation failed: {e}")
+            # Fallback to GPT if local fails? No, let it fail for now or user prefers local.
+            raise
 
 
 # Singleton instance

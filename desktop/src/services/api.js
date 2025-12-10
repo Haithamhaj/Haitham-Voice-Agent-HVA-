@@ -38,6 +38,8 @@ export const api = {
 
     // Gmail
     fetchEmails: () => monitoredFetch('/gmail/unread'),
+    summarizeEmail: (id) => monitoredFetch(`/gmail/summarize/${id}`, { method: 'POST' }),
+    convertEmailToTask: (id) => monitoredFetch(`/gmail/task/${id}`, { method: 'POST' }),
 
     // Calendar
     // Calendar
