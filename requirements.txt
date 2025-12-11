@@ -33,3 +33,6 @@ dateparser
 psutil
 sentence-transformers
 python-docx
+openai-whisper
+pillow
+pytesseract

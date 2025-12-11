@@ -3,34 +3,37 @@
 ## Purpose
 The goal of this pipeline is to ingest various documents and chat logs authored by or relevant to "Haithm" (the user/persona) into a single, normalized machine-learning-ready corpus (`jsonl`). This raw text corpus will serve as the foundation for building a "Style" fine-tuning dataset for the Qwen model.
 
-## Directory Structure
 
-You should manually place your raw files into the `haithm_corpus` directory:
+## Supported Formats
 
+### Documents
+- **PDF** (`.pdf`): Extracts text from pages.
+- **Word** (`.docx`): Extracts text from paragraphs.
+- **Text** (`.txt`, `.md`): Raw text ingestion.
+
+### Chats (GPT Exports)
+- **JSON** (`.json`): Supports standard "OpenAI Data Export" format (`conversations.json`), recursively parsing the conversation tree.
+- **HTML** (`chat.html`): Heuristic parsing of message containers.
+
+**Example: Ingesting a GPT Data Export**
+You can ingest directly from your extracted export folder:
+```bash
+python scripts/ingest_haithm_corpus.py \
+  --root "/Users/haitham/development/Haitham Voice Agent (HVA)/Haitham Data/GPT -Haitham 11-12-2025" \
+  --force
 ```
-haithm_corpus/
-├── docs/       # Articles, CV, Frameworks (PDF, DOCX, MD, TXT)
-├── chats/      # GPT/LLM chat exports (JSON, HTML)
-└── other/      # Miscellaneous text data
-```
 
-## How to Run
+### Audio (Speech-to-Text)
+- **Extensions**: `.m4a`, `.mp3`, `.wav`
+- **Engine**: Uses `openai-whisper` (local model, typically `base` size).
+- **Requirement**: `ffmpeg` must be installed on the system.
+- **Process**: Transcribes audio -> Chunks text -> Assigns role="user".
 
-1. **Install Dependencies** (if not already done):
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Run Ingestion Script**:
-   ```bash
-   python scripts/ingest_haithm_corpus.py
-   ```
-
-   **Options**:
-   - `--force`: Overwrite the output file if it exists.
-   - `--max-chars <int>`: Maximum characters per chunk (default: 2000).
-   - `--root <path>`: Custom input root directory (default: `haithm_corpus`).
-   - `--output <path>`: Custom output path (default: `data/haithm_corpus_raw.jsonl`).
+### Images (OCR)
+- **Extensions**: `.png`, `.jpg`, `.jpeg`, `.webp`
+- **Engine**: Uses `Tesseract OCR` via `pytesseract`.
+- **Requirement**: `tesseract` binary must be installed (e.g., `brew install tesseract`).
+- **Process**: OCR -> Chunks text -> Assigns role="user".
 
 ## Output Format
 

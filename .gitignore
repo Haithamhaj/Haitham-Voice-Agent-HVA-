@@ -62,6 +62,25 @@ credentials/
 !haitham_voice_agent/data/pricing.json
 !finetune/routing/runs.json
 
+# Private Data & Datasets
+Haitham Data/
+haithm_corpus/
+data/haithm_corpus_raw*.jsonl
+data/dataset_haithm_*.jsonl
+data/dataset_hva_qwen_routing.jsonl
+
+# Media Files
+*.m4a
+*.mp3
+*.wav
+*.aac
+*.ogg
+*.flac
+*.png
+*.jpg
+*.jpeg
+*.webp
+
 # Testing
 .pytest_cache/
 .coverage
