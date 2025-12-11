@@ -140,10 +140,15 @@ class Config:
     STT_LANGUAGE_EN: str = "en-US"
 
     # ==================== FINE-TUNING LAB CONFIG ====================
+    # Routing Fine-tuning
     FINETUNE_DATASET_PATH: str = "data/dataset_hva_qwen_routing.jsonl"
     FINETUNE_MODEL_PATH: str = "models/hva_qwen_routing_lora"
     FINETUNE_BASE_MODEL: str = "qwen2.5:3b"
     FINETUNE_TRAINED_MODEL: str = "hva-qwen-routing-v1"
+    
+    # Haithm Style Fine-tuning
+    HAITHM_STYLE_DATASET_PATH: str = "data/dataset_haithm_style_natural.jsonl"
+    HAITHM_STYLE_MODEL_PATH: str = "models/hva_haithm_style_lora_hs-20251211-v1-text-only"
 
     # ==================== LOGGING CONFIG ====================
     # Enable structured logging for routing dataset collection

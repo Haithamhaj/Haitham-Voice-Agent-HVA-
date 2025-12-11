@@ -22,33 +22,51 @@ class ChatRequest(BaseModel):
     model_provider: str  # "gpt" or "gemini"
     messages: List[Dict[str, str]]
 
+class StyleCompareRequest(BaseModel):
+    prompt: str
+    max_new_tokens: Optional[int] = 256
+    temperature: Optional[float] = 0.7
+    top_p: Optional[float] = 0.9
+
 # Endpoints
 
 @router.get("/status")
 async def get_finetune_status():
     """
-    Check existence of dataset and fine-tuned model.
+    Check existence of datasets and fine-tuned models (both routing and Haithm Style).
     """
-    dataset_path = Config.HVA_HOME.parent / "data/dataset_hva_qwen_routing.jsonl" # Assuming relative to project root, adjusting based on HVA_HOME needing care. 
-    # Actually Config.FINETUNE_DATASET_PATH is relative to where process runs?
-    # Let's use the project root logic from api/main.py but we don't have it here directly.
-    # Config.HVA_HOME might be ~/.hva. 
-    # Let's assume the user runs from project root.
-    
-    # Re-reading Config:
-    # FINETUNE_DATASET_PATH: str = "data/dataset_hva_qwen_routing.jsonl"
-    
     project_root = Path.cwd()
-    dataset_full_path = project_root / Config.FINETUNE_DATASET_PATH
-    model_full_path = project_root / Config.FINETUNE_MODEL_PATH
+    
+    # Routing fine-tuning
+    routing_dataset_path = project_root / Config.FINETUNE_DATASET_PATH
+    routing_model_path = project_root / Config.FINETUNE_MODEL_PATH
+    
+    # Haithm Style fine-tuning
+    style_dataset_path = project_root / Config.HAITHM_STYLE_DATASET_PATH
+    style_model_path = project_root / Config.HAITHM_STYLE_MODEL_PATH
     
     return {
-        "dataset_exists": dataset_full_path.exists(),
-        "dataset_path": str(Config.FINETUNE_DATASET_PATH) if dataset_full_path.exists() else None,
-        "finetuned_model_exists": model_full_path.exists(),
-        "finetuned_model_path": str(Config.FINETUNE_MODEL_PATH) if model_full_path.exists() else None,
+        # Routing (legacy - for backward compatibility)
+        "dataset_exists": style_dataset_path.exists(),  # Show Haithm Style dataset
+        "dataset_path": str(Config.HAITHM_STYLE_DATASET_PATH) if style_dataset_path.exists() else None,
+        "finetuned_model_exists": style_model_path.exists(),  # Show Haithm Style model
+        "finetuned_model_path": str(Config.HAITHM_STYLE_MODEL_PATH) if style_model_path.exists() else None,
         "base_model": Config.FINETUNE_BASE_MODEL,
-        "finetuned_model_name": Config.FINETUNE_TRAINED_MODEL
+        "finetuned_model_name": "Haithm-V1 Style",
+        
+        # Detailed status for both
+        "routing": {
+            "dataset_exists": routing_dataset_path.exists(),
+            "dataset_path": str(Config.FINETUNE_DATASET_PATH) if routing_dataset_path.exists() else None,
+            "model_exists": routing_model_path.exists(),
+            "model_path": str(Config.FINETUNE_MODEL_PATH) if routing_model_path.exists() else None,
+        },
+        "haithm_style": {
+            "dataset_exists": style_dataset_path.exists(),
+            "dataset_path": str(Config.HAITHM_STYLE_DATASET_PATH) if style_dataset_path.exists() else None,
+            "model_exists": style_model_path.exists(),
+            "model_path": str(Config.HAITHM_STYLE_MODEL_PATH) if style_model_path.exists() else None,
+        }
     }
 
 @router.get("/dataset/preview")
@@ -223,19 +241,14 @@ Important constraints:
         ]
     }
 @router.post("/style-compare")
-async def style_compare(request: Dict[str, Any]):
+async def style_compare(request: StyleCompareRequest):
     """
     Compare Base vs Haithm Style V1 using core inference logic.
     """
     # Import inside handler to avoid loading heavy models on app startup
     from finetune.haithm_style.infer_haithm_style_core import compare_base_vs_haithm_v1
     
-    prompt = request.get("prompt", "")
-    max_new_tokens = request.get("max_new_tokens", 256)
-    temperature = request.get("temperature", 0.7)
-    top_p = request.get("top_p", 0.9)
-    
-    if not prompt:
+    if not request.prompt:
         raise HTTPException(status_code=400, detail="Prompt is required")
 
     try:
@@ -248,10 +261,10 @@ async def style_compare(request: Dict[str, Any]):
             None,
             functools.partial(
                 compare_base_vs_haithm_v1,
-                prompt=prompt,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=top_p
+                prompt=request.prompt,
+                max_new_tokens=request.max_new_tokens,
+                temperature=request.temperature,
+                top_p=request.top_p
             )
         )
         return result
