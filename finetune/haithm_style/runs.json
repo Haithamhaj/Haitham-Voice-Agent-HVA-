@@ -48,6 +48,6 @@
         "output_dir": "models/hva_haithm_style_lora_v2",
         "platform": "Google Colab T4",
         "status": "RUNNING",
-        "notes": "Retry of V2 Mini-Me run after initial crash."
+        "notes": "Retry of V2 Mini-Me run. OPTIMIZED: 1 Epoch, Batch Size 2, Grad Accum 16. Target: Finish in < 2 hours."
     }
 ]
