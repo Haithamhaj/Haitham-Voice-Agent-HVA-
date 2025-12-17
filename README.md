@@ -377,7 +377,7 @@ haitham_voice_agent/
 ### الوصول إلى المختبر
 
 افتح التطبيق وانقر على "مختبر النموذج" في الشريط الجانبي، أو انتقل إلى:
-`http://localhost:8765/finetune-lab`
+`https://agent.next-stepai.com/finetune-lab`
 
 ### المكونات الرئيسية
 
@@ -454,7 +454,7 @@ ROUTING OUTPUT: {"type": "execute_command", "intent": "open_app", ...}
 ### Accessing the Lab
 
 Open the app and click "Fine-Tuning Lab" in the sidebar, or navigate to:
-`http://localhost:8765/finetune-lab`
+`https://agent.next-stepai.com/finetune-lab`
 
 ### Main Components
 
