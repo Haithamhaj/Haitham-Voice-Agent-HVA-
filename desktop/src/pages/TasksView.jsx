@@ -57,17 +57,31 @@ const TasksView = () => {
                     <div className="divide-y divide-hva-border-subtle">
                         {tasks.map((task, index) => (
                             <div key={index} className="p-4 flex items-center gap-4 hover:bg-hva-card-hover transition-colors group">
-                                <button className="text-hva-dim hover:text-green-500 transition-colors">
+                                <button
+                                    onClick={() => {
+                                        const newStatus = !task.completed;
+                                        // Optimistic update
+                                        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: newStatus } : t));
+
+                                        api.updateTask(task.id, { completed: newStatus })
+                                            .catch(err => {
+                                                console.error("Failed to update task", err);
+                                                // Revert on failure
+                                                setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !newStatus } : t));
+                                            });
+                                    }}
+                                    className="text-hva-dim hover:text-green-500 transition-colors cursor-pointer"
+                                >
                                     {task.completed ? <CheckCircle2 size={24} className="text-green-500" /> : <Circle size={24} />}
                                 </button>
 
                                 <div className="flex-1">
-                                    <h3 className={`font - medium text - lg ${task.completed ? 'text-hva-dim line-through' : 'text-hva-cream'} `}>
+                                    <h3 className={`font-medium text-lg ${task.completed ? 'text-hva-dim line-through' : 'text-hva-cream'} `}>
                                         {task.title || task.content || "مهمة بدون عنوان"}
                                     </h3>
-                                    {task.due_date && (
+                                    {task.due_date && task.due_date !== "Invalid Date" && !isNaN(new Date(task.due_date).getTime()) && (
                                         <p className="text-xs text-hva-muted mt-1">
-                                            تستحق في: {new Date(task.due_date).toLocaleDateString()}
+                                            تستحق في: {new Date(task.due_date).toLocaleDateString('ar-EG')}
                                         </p>
                                     )}
                                 </div>

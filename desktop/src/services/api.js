@@ -35,6 +35,11 @@ export const api = {
     // Tasks
     fetchTasks: () => monitoredFetch('/tasks/'),
     deleteTask: (id) => monitoredFetch(`/tasks/${id}`, { method: 'DELETE' }),
+    updateTask: (id, updates) => monitoredFetch(`/tasks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+    }),
 
     // Gmail
     fetchEmails: () => monitoredFetch('/gmail/unread'),
