@@ -60,6 +60,8 @@ A voice-operated automation agent for macOS with hybrid LLM routing, a living me
 - ✅ **System Awareness**: فهم عميق للجهاز، التطبيقات، والملفات.
 - ✅ **Executive Personas**: أدوات متخصصة (سكرتير، مستشار) لإدارة المهام.
 - ✅ **Full Google Integration**: ربط كامل مع Gmail, Calendar, Drive.
+- ✅ **Secure Remote Access**: تحكم كامل عن بعد عبر نفق مشفر (Cloudflare Tunnel).
+- ✅ **Universal Ingestion**: دعم استيعاب الصور، الصوت، والمحادثات بجميع الصيغ.
 - ✅ **Proactive Notifications**: نظام تنبيهات ذكي للمواعيد والإيميلات.
 - ✅ **Safety First**: نظام أمان متعدد الطبقات يمنع الإجراءات المدمرة.
 - ✅ **Self-Improving AI**: نظام تعلم ذاتي يتحسن مع الاستخدام.
@@ -108,6 +110,7 @@ A 4-layer routing architecture ensures accuracy, efficiency, and cost-optimizati
 - **✅ حالة الموارد**: فحص فوري لوجود مجموعة البيانات والنموذج المحسّن.
 - **📁 معاينة البيانات**: عرض عينات من مجموعة بيانات التدريب.
 - **⚖️ مقارنة النماذج**: اختبار جنباً إلى جنب بين النموذج الأساسي والمحسّن.
+- **🧑‍⚖️ المقيّم التفاعلي (Interactive Judge)**: اطلب من المدرب الذكي تقييم نتائج المقارنة فوراً وإعطاء حكم مفصل (Score/Winning Reason).
 - **📈 ملخص التدريب**: إحصائيات التدريب والأداء (قريباً).
 - **🤖 مدرس التحسين الذكي**: مساعد AI يشرح مفاهيم PEFT و QLoRA ويجيب على أسئلتك.
 
@@ -134,6 +137,7 @@ A 4-layer routing architecture ensures accuracy, efficiency, and cost-optimizati
 - **✅ Resource Status**: Instant check for dataset and fine-tuned model availability.
 - **📁 Dataset Preview**: View samples from the training dataset.
 - **⚖️ Model Comparison**: Side-by-side testing of base vs fine-tuned model.
+- **🧑‍⚖️ Interactive Judge**: Ask the Intelligent Tutor to instantly evaluate comparison results and provide a detailed verdict (Score/Reasoning).
 - **📈 Training Summary**: Training stats and performance metrics (coming soon).
 - **🤖 Intelligent Tutor**: AI assistant explaining PEFT, QLoRA concepts and answering questions.
 
@@ -583,6 +587,19 @@ HVA includes a built-in Developer Toolkit:
 - **🏖️ Smart User Sandbox**: منع الوصول خارج `~/`
 - **🔐 Secure Credential Store**: استخدام macOS Keychain
 - **🛡️ Action Confirmation**: تأكيد للإجراءات المدمرة
+- **🧠 Mind-Q Guardian**: حارس ذكي يراقب جودة الكود والالتزام بـ Tech Stack.
+
+</div>
+
+### 🌍 الوصول عن بعد الآمن | Secure Remote Access
+
+<div dir="rtl">
+
+يدعم HVA الوصول الآمن عن بعد باستخدام **Cloudflare Tunnel**:
+- **نطاق مخصص**: `agent.next-stepai.com` (أو نطاقك الخاص).
+- **تشفير Zero Trust**: لا حاجة لفتح أي منافذ (No Port Forwarding).
+- **مصادقة**: محمية بنظام Cloudflare Access.
+- **عزل تام**: الشبكة الداخلية مفصولة عن الإنترنت العام.
 
 </div>
 
@@ -737,6 +754,26 @@ open "desktop/dist/mac-arm64/HVA Premium.app"
 - **Detailed Breakdown**: Separate costs for Gemini and GPT
 - **Budget Safety**: Alerts and blocking for redundant operations
 - **Dashboard**: Daily charts and detailed logs
+
+---
+
+## 📥 نظام الاستيعاب الشامل | Universal Ingestion Pipeline
+
+<div dir="rtl">
+
+يدعم HVA استيعاب وفهم جميع أنواع الملفات لبناء الذاكرة:
+- **🗣️ الصوت (.mp3, .wav, .m4a)**: تحويل تلقائي للنصوص باستخدام **Whisper** (محلي أو Cloud).
+- **🖼️ الصور (.png, .jpg, .webp)**: استخراج النصوص باستخدام **OCR (Tesseract)**.
+- **💬 المحادثات (.json, .html)**: دعم خاص لتصدير ChatGPT و WhatsApp.
+- **📄 المستندات**: PDF, Markdown, Text.
+
+</div>
+
+HVA supports unified ingestion for all file types to build its memory:
+- **🗣️ Audio**: Auto-transcription via **Whisper**.
+- **🖼️ Images**: Text extraction via **OCR (Tesseract)**.
+- **💬 Chats**: Special parsers for ChatGPT/WhatsApp exports.
+- **📄 Docs**: PDF, Markdown, Text.
 
 ---
 

@@ -292,7 +292,7 @@ async def experiment_chat(request: ExperimentChatRequest):
     import asyncio
     import functools
     
-    print(f"DEBUG: START experiment_chat mode={request.mode}")
+    print(f"DEBUG: START experiment_chat mode={request.mode} history_len={len(request.messages)}")
     try:
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(
@@ -350,3 +350,75 @@ async def save_experiment_session(request: ExperimentChatRequest):
     except Exception as e:
         logger.error(f"Failed to save session: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+class EvaluateRequest(BaseModel):
+    prompt: str
+    base_response: str
+    v2_response: str
+    language: Optional[str] = "ar"  # 'ar' or 'en'
+
+@router.post("/experiment/evaluate")
+async def evaluate_experiment(request: EvaluateRequest):
+    """
+    Evaluate Base vs V2 using Gemini as a Judge.
+    """
+    llm_router = get_router()
+    
+    lang_instruction = "Respond in ARABIC." if request.language == 'ar' else "Respond in ENGLISH."
+    
+    system_prompt = f"""You are an expert AI Model Evaluator. {lang_instruction}
+Your job is to compare two model responses (Base Model vs Fine-Tuned Model) based on specific "Persona Goals" and "Technical Accuracy".
+
+Target Goals (Fine-Tuned Model):
+1. Identity: MUST know it is "Haitham Voice Agent" (or HVA).
+2. Directness: NO fluff, no apologies. Start directly with the answer.
+3. Thinking & Analysis: Does it show logical reasoning? Is the analysis deep or superficial?
+4. JSON Adherence: If JSON is requested, is it 100% valid? No formatting errors?
+5. Factuality: Are the facts accurate? Does it hallucinate (e.g. claiming false capabilities)?
+
+Output must be valid JSON:
+{{
+  "winner": "base" | "v2" | "tie",
+  "base_score": <0-10>,
+  "v2_score": <0-10>,
+  "reasoning": "A structured explanation using Markdown bullet points. Break down by: - Identity Analysis - Directness - Technical Accuracy."
+}}
+"""
+    
+    user_prompt = f"""
+Query: {request.prompt}
+
+[Base Model Response]:
+{request.base_response}
+
+[App Model (V2) Response]:
+{request.v2_response}
+
+Evaluate them.
+"""
+
+    try:
+        # Use Gemini Flash for speed and reasoning
+        response = await llm_router.generate_with_gemini(
+            prompt=user_prompt,
+            system_instruction=system_prompt,
+            temperature=0.1, # Low temp for consistent judging
+            logical_model="logical.gemini.flash" 
+        )
+        
+        # Clean JSON
+        content = response["content"]
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].strip()
+            
+        return json.loads(content)
+
+    except Exception as e:
+        logger.error(f"Evaluation failed: {e}")
+        return {
+            "winner": "error",
+            "base_score": 0,
+            "v2_score": 0,
+            "reasoning": f"Evaluation failed: {str(e)}"
+        }

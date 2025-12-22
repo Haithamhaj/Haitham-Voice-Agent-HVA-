@@ -57,6 +57,8 @@ HVA is not static software; it is an evolving organism. It observes your interac
 | **📧 Intelligent Mailroom** | Summarizes long threads and drafts smart execution-oriented replies via Gmail. |
 | **🗓️ Strategic Calendar** | Manages your time like a chief of staff, understanding "tomorrow morning" naturally. |
 | **🚦 Traffic Light Security** | A unique safety protocol that prevents accidental destructive actions. |
+| **🌍 Secure Remote Access** | Manage your empire from anywhere via Cloudflare Zero Trust Tunnel. No VPNs, just secure web access. |
+| **📥 Universal Ingestion** | Feeds on *everything*—Audio, Images, Chats, & Docs—to build a comprehensive corporate memory. |
 
 ---
 
@@ -86,7 +88,8 @@ An AI that doesn't just execute tasks, but **thinks and speaks like you**. It ca
 
 *   **Hybrid Routing**: Uses a "Committee of Models" strategy. Fast local models handle routine tasks instantly (0.1s latency), while heavy reasoning is delegated to advanced cloud models (GPT-4/Gemini) only when necessary.
 *   **Cost Efficiency**: Optimizes every request to ensure maximum intelligence for minimum cost.
-*   **Self-Improving**: Includes a **Fine-Tuning Lab** that learns from your corrections, getting smarter with every interaction.
+*   **Quality Assurance Lab**: Not just a "training" tool, but a rigorous **Standardization Lab**. Includes an **Interactive AI Judge** that evaluates every model response against your Gold Standard, ensuring the AI represents you perfectly.
+*   **Self-Improving**: Learns from your corrections, getting smarter with every interaction.
 
 ---
 

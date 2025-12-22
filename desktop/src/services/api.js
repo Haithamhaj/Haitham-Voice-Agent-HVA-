@@ -133,6 +133,11 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model_provider, messages })
-    })
+    }),
+    finetuneEvaluate: (prompt, base_response, v2_response, language = 'ar') => monitoredFetch('/finetune/experiment/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, base_response, v2_response, language })
+    }),
 };
 

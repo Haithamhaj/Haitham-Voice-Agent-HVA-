@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { FlaskConical, Database, Activity, GitBranch, Send, Bot, FileText, CheckCircle, AlertCircle, Clock, Cpu, Play, Layout } from 'lucide-react';
 import clsx from 'clsx';
-import ReactMarkdown from 'react-markdown';
+// import ReactMarkdown from 'react-markdown';
 
 // --- Components ---
 
@@ -44,7 +44,7 @@ const PipelineStep = ({ step, title, desc, status, isLast }) => (
     </div>
 );
 
-const ExperimentChat = () => {
+const ExperimentChat = ({ onTurnComplete }) => {
     // Dual State for Side-by-Side Comparison
     const [messagesBase, setMessagesBase] = useState([]);
     const [messagesV2, setMessagesV2] = useState([]);
@@ -89,6 +89,15 @@ const ExperimentChat = () => {
             setMessagesBase([...newHistBase, resBase]);
             setMessagesV2([...newHistV2, resV2]);
 
+            // Notify parent for Tutor Context
+            if (onTurnComplete) {
+                onTurnComplete({
+                    prompt: userMsg.content,
+                    base: resBase.content,
+                    v2: resV2.content
+                });
+            }
+
         } catch (error) {
             console.error("Chat Error", error);
         } finally {
@@ -119,13 +128,15 @@ const ExperimentChat = () => {
         <div className={`flex-1 flex flex-col border ${borderColor} rounded-xl bg-black/20 overflow-hidden`}>
             <div className="p-3 bg-hva-primary/50 border-b border-white/10 flex justify-between items-center">
                 <span className={`font-bold ${modelKey === 'haithm_v2' ? 'text-green-400' : 'text-gray-400'}`}>{title}</span>
-                <button
-                    onClick={() => handleSave(modelKey, messages)}
-                    disabled={messages.length === 0}
-                    className="text-xs bg-hva-card hover:bg-hva-card-hover px-3 py-1 rounded text-hva-muted transition-colors disabled:opacity-50"
-                >
-                    💾 حفظ
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => handleSave(modelKey, messages)}
+                        disabled={messages.length === 0}
+                        className="text-xs bg-hva-card hover:bg-hva-card-hover px-3 py-1 rounded text-hva-muted transition-colors disabled:opacity-50"
+                    >
+                        💾 حفظ
+                    </button>
+                </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4 h-[500px]">
                 {messages.length === 0 && (
@@ -159,7 +170,11 @@ const ExperimentChat = () => {
                     <Layout size={28} className="text-blue-400" />
                     المحادثة المقارنة (Side-by-Side Experiment)
                 </h3>
-                <button onClick={handleClear} className="text-red-400 text-sm hover:underline px-3">🗑️ مسح الكل</button>
+                <div className="flex gap-2">
+                    <button onClick={handleClear} className="text-red-400 text-sm hover:underline px-3 flex items-center gap-2">
+                        <span>🗑️ مسح الكل</span>
+                    </button>
+                </div>
             </div>
 
             <div className="flex gap-4 mb-4">
@@ -199,6 +214,9 @@ const FinetuneLab = () => {
     const [prompt, setPrompt] = useState("قم بإنشاء ملاحظة عن اجتماع الفريق غداً");
     const [comparisonResult, setComparisonResult] = useState(null);
     const [comparing, setComparing] = useState(false);
+
+    // Experiment State (Lifted for Tutor)
+    const [lastExperimentTurn, setLastExperimentTurn] = useState(null);
 
     // Chat State
     const [chatModel, setChatModel] = useState("gpt");
@@ -247,15 +265,17 @@ const FinetuneLab = () => {
         }
     };
 
-    const handleChatSend = async (e) => {
-        e.preventDefault();
-        if (!chatInput.trim()) return;
+    const handleChatSend = async (e, overrideInput) => {
+        if (e) e.preventDefault();
+        const textToSend = overrideInput || chatInput;
 
-        const newUserMsg = { role: 'user', content: chatInput };
+        if (!textToSend.trim()) return;
+
+        const newUserMsg = { role: 'user', content: textToSend };
         const newHistory = [...chatHistory, newUserMsg];
 
         setChatHistory(newHistory);
-        setChatInput("");
+        if (!overrideInput) setChatInput("");
         setChatLoading(true);
 
         try {
@@ -268,6 +288,35 @@ const FinetuneLab = () => {
         } finally {
             setChatLoading(false);
         }
+    };
+
+    const handleEvaluateInTutor = async () => {
+        if (!lastExperimentTurn) {
+            alert("لا توجد بيانات للتجربة! يرجى إجراء محادثة في قسم Experiment أولاً.");
+            return;
+        }
+
+        const prompt = `
+Please act as an impartial judge and evaluate the following conversational turn.
+I want you to compare the "Base Model" response vs the "Haithm-V2" response.
+
+User Prompt: "${lastExperimentTurn.prompt}"
+
+Base Model Response:
+"${lastExperimentTurn.base}"
+
+Haithm-V2 Response:
+"${lastExperimentTurn.v2}"
+
+Task:
+1. Analyze both responses for accuracy, directness, and persona alignment (Haithm persona is professional, concise, no fluff).
+2. Declare a winner (or tie).
+3. Explain why.
+4. Give a score out of 10 for each.
+Please reply in Arabic.
+`;
+        // Send the detailed prompt to the Tutor
+        handleChatSend(null, prompt);
     };
 
     if (loading) {
@@ -461,7 +510,7 @@ const FinetuneLab = () => {
             </div>
 
             {/* Experiment Chat Section */}
-            <ExperimentChat />
+            <ExperimentChat onTurnComplete={setLastExperimentTurn} />
 
             {/* Tutor Chat - Bottom Section */}
             <div className="bg-hva-card border border-hva-card-hover rounded-2xl shadow-xl overflow-hidden mt-4">
@@ -473,6 +522,15 @@ const FinetuneLab = () => {
                         </h3>
                         <p className="text-hva-muted mt-2 text-base">اسأل المدرب عن تفاصيل هذه الصفحة أو عملية التدريب وكيفية قراءة النتائج.</p>
                     </div>
+                    {/* Evaluation Button */}
+                    <button
+                        onClick={handleEvaluateInTutor}
+                        disabled={!lastExperimentTurn || chatLoading}
+                        className="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 px-4 py-2 rounded-xl flex items-center gap-2 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                        <span className="text-xl">⚖️</span>
+                        <span>تقييم آخر تجربة</span>
+                    </button>
                 </div>
 
                 {/* Chat Container - Fixed Height */}
@@ -492,7 +550,8 @@ const FinetuneLab = () => {
                                         ? "bg-hva-card-hover text-hva-cream rounded-tr-none mr-auto border border-hva-card-hover"
                                         : "bg-hva-accent/20 text-hva-cream border border-hva-accent/30 rounded-tl-none ml-auto"
                                 )}>
-                                    {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : msg.content}
+                                    {/* {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : msg.content} */}
+                                    {msg.content}
                                 </div>
                                 <span className="text-xs text-hva-muted mt-2 px-2 font-medium">
                                     {msg.role === 'user' ? 'أنت' : 'المدرب'}
